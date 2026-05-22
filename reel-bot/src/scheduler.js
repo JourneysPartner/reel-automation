@@ -24,6 +24,9 @@ import { runPipeline } from "./index.js";
 import { getAllRows, upsertRow } from "./sheet.js";
 import { sendMessage, buildReviewMessage, buildErrorMessage } from "./chatwork.js";
 import { makeApprovalUrl } from "./approval.js";
+import { signObjectUrl } from "./gcs.js";
+
+const PREVIEW_EXPIRY_MS = 7 * 24 * 3600 * 1000; // 確認用URLの有効期限（7日＝V4上限）
 
 const GENERATED_STATUSES = ["generating", "review", "approved", "rejected", "skipped", "published"];
 
@@ -84,9 +87,12 @@ async function generateOne(p) {
 
   // リールは schedule の topic/angle を台本ソースに（slug=公開日）
   const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
-  const res = await runPipeline({ text: sourceText, slug: p.date });
+  await runPipeline({ text: sourceText, slug: p.date });
 
-  const previewUrl = res.drivePreviewUrl || res.reelUrl;
+  // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
+  const previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, {
+    expiryMs: PREVIEW_EXPIRY_MS,
+  });
   await upsertRow(p.date, {
     status: "review",
     preview_url: previewUrl,

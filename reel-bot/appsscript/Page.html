@@ -20,11 +20,9 @@
     <p class="meta">公開予定: <?= publishDate ?></p>
     <p class="meta">テーマ: <?= theme ?></p>
 
-    <? if (fileId) { ?>
-    <iframe class="preview" src="https://drive.google.com/file/d/<?= fileId ?>/preview" allow="autoplay"></iframe>
-    <? } ?>
     <? if (previewUrl) { ?>
-    <a class="link" href="<?= previewUrl ?>" target="_blank">▶ 動画をDriveで開く</a>
+    <video class="preview" src="<?= previewUrl ?>" controls playsinline preload="metadata"></video>
+    <a class="link" href="<?= previewUrl ?>" target="_blank">▶ 別タブで開く</a>
     <? } ?>
 
     <? if (status === 'approved' || status === 'skipped') { ?>
