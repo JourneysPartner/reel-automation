@@ -1,0 +1,91 @@
+# 月間投稿スケジュール
+# day は月内の日付（1〜31）
+# date は YYYY-MM-DD 形式
+# type は carousel / reel のいずれか
+
+month: "2026-06"
+
+posts:
+  - day: 1
+    date: "2026-06-01"
+    type: carousel
+    target_persona: freelancer
+    topic: "インボイス制度2年目で起こる3つの落とし穴"
+    angle: "1年目を乗り切ったフリーランスが見落とす『簡易課税2割特例の罠』"
+
+  - day: 3
+    date: "2026-06-03"
+    type: carousel
+    target_persona: ec_seller
+    topic: "EC事業者の在庫評価方法の選び方"
+    angle: "原価法と低価法、どちらを選ぶかで利益が数百万変わる理由"
+
+  - day: 5
+    date: "2026-06-05"
+    type: reel
+    target_persona: influencer
+    topic: "クリエイターの『これも経費？』に1分で答える"
+    angle: "衣装・自宅スタジオ・PCの経費按分の実務的な線引き"
+
+  - day: 7
+    date: "2026-06-07"
+    type: carousel
+    target_persona: smb_owner
+    topic: "顧問税理士に任せきりの社長が損する5つのこと"
+    angle: "経営者本人が知らないと判断ミスにつながる税務の論点"
+
+  - day: 10
+    date: "2026-06-10"
+    type: carousel
+    target_persona: wealth_holder
+    topic: "相続税の税務調査が入りやすい家庭の特徴"
+    angle: "国税OBが語る『調査対象に選ばれるサイン』"
+
+  - day: 12
+    date: "2026-06-12"
+    type: carousel
+    target_persona: freelancer
+    topic: "個人事業主の法人化タイミング判断"
+    angle: "売上1000万・利益500万を超えたら検討すべき7つの論点"
+
+  - day: 14
+    date: "2026-06-14"
+    type: reel
+    target_persona: ec_seller
+    topic: "EC物販で消費税が一気に増える瞬間"
+    angle: "課税事業者になる前にやっておくべきこと"
+
+  - day: 17
+    date: "2026-06-17"
+    type: carousel
+    target_persona: influencer
+    topic: "海外プラットフォーム収入の確定申告"
+    angle: "YouTube AdSense・Twitch・海外PR案件の申告漏れリスク"
+
+  - day: 19
+    date: "2026-06-19"
+    type: carousel
+    target_persona: smb_owner
+    topic: "事業承継10年計画の最初の一歩"
+    angle: "60代社長が今やるべき『次世代に渡す準備』"
+
+  - day: 21
+    date: "2026-06-21"
+    type: reel
+    target_persona: wealth_holder
+    topic: "生前贈与110万円ルールの誤解"
+    angle: "暦年贈与の落とし穴、改正後の正しい使い方"
+
+  - day: 24
+    date: "2026-06-24"
+    type: carousel
+    target_persona: freelancer
+    topic: "電子帳簿保存法・対応していないとどうなる？"
+    angle: "2026年現在、税務調査で実際に指摘されているポイント"
+
+  - day: 27
+    date: "2026-06-27"
+    type: carousel
+    target_persona: ec_seller
+    topic: "夏の繁忙期前にやっておく資金繰り設計"
+    angle: "プライムデー・お盆セール前の現金温存術"

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      position: relative;
+      color: {{ brand_text_color }};
+      background:
+        radial-gradient(circle at 95% 105%, rgba(200, 169, 110, 0.22) 0%, rgba(200, 169, 110, 0.06) 28%, transparent 50%),
+        radial-gradient(ellipse at 10% 0%, rgba(255, 255, 255, 0.7) 0%, transparent 40%),
+        {{ brand_background_color }};
+    }
+
+    .bg-stripes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        135deg,
+        rgba(15, 27, 45, 0.025) 0,
+        rgba(15, 27, 45, 0.025) 2px,
+        transparent 2px,
+        transparent 26px
+      );
+      z-index: 0;
+    }
+
+    /* === Top: 時計 + LUNCH BREAK === */
+    .top-zone {
+      position: absolute;
+      top: 110px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 2;
+    }
+    .clock-icon {
+      font-size: 64px;
+      line-height: 1;
+      margin-bottom: 18px;
+      filter: drop-shadow(0 0 12px rgba(200, 169, 110, 0.3));
+    }
+    .label {
+      color: {{ brand_accent_color }};
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.5em;
+      padding-left: 0.5em;
+    }
+    .label::before,
+    .label::after {
+      content: "";
+      display: inline-block;
+      width: 30px;
+      height: 1px;
+      background: {{ brand_accent_color }};
+      vertical-align: middle;
+      margin: 0 18px;
+    }
+    .scheduled-time {
+      color: {{ brand_main_color }};
+      font-size: 22px;
+      letter-spacing: 0.3em;
+      padding-left: 0.3em;
+      font-weight: 500;
+      margin-top: 14px;
+      opacity: 0.7;
+    }
+
+    /* === Center: 本文カード === */
+    .text-zone {
+      position: absolute;
+      top: 50%;
+      left: 80px;
+      right: 80px;
+      transform: translateY(-50%);
+      z-index: 3;
+    }
+    .text-card {
+      background: linear-gradient(135deg, #ffffff 0%, #fef7ea 100%);
+      border-radius: 36px;
+      padding: 70px 64px;
+      box-shadow:
+        0 36px 72px -32px rgba(15, 27, 45, 0.32),
+        0 8px 16px -8px rgba(15, 27, 45, 0.18),
+        0 1px 0 rgba(255, 255, 255, 0.95) inset;
+      border: 1.5px solid rgba(200, 169, 110, 0.30);
+      position: relative;
+    }
+    .text-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 70px;
+      width: 64px;
+      height: 6px;
+      background: {{ brand_accent_color }};
+      border-radius: 0 0 4px 4px;
+    }
+    .text {
+      font-size: 42px;
+      font-weight: 500;
+      line-height: 1.7;
+      letter-spacing: 0.02em;
+      color: {{ brand_text_color }};
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    /* === Bottom: キャラ + アカウント === */
+    .bottom-zone {
+      position: absolute;
+      bottom: 110px;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      z-index: 3;
+    }
+    .character {
+      width: auto;
+      height: 180px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 18px rgba(15, 27, 45, 0.30));
+    }
+    .account {
+      color: rgba(15, 27, 45, 0.55);
+      font-size: 24px;
+      letter-spacing: 0.15em;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-stripes"></div>
+
+  <div class="top-zone">
+    <div class="clock-icon">🕐</div>
+    <div class="label">LUNCH BREAK</div>
+    <div class="scheduled-time">{{ scheduled_time }}</div>
+  </div>
+
+  <div class="text-zone">
+    <div class="text-card">
+      <div class="text">{{ text }}</div>
+    </div>
+  </div>
+
+  <div class="bottom-zone">
+    {% if character_base64 %}<img class="character" src="data:image/png;base64,{{ character_base64 }}" alt="守護神" />{% endif %}
+    <div class="account">{{ account_name }}</div>
+  </div>
+</body>
+</html>

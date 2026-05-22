@@ -1,0 +1,54 @@
+name: reel-publish
+
+# 毎日、公開予定日かつ「承認済み(approved)」のリールを Instagram へ自動投稿。
+# 動画・台本は生成時に GCS へ保存済み（reels/<id>/）。ここでは署名URLを取り直して投稿する。
+on:
+  schedule:
+    - cron: "0 10 * * *" # 毎日 19:00 JST（10:00 UTC）
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "「今日」を上書き（YYYY-MM-DD, テスト用）"
+        required: false
+      id:
+        description: "指定 publish_date の1件だけ公開（approved のもの）"
+        required: false
+      dry_run:
+        description: "公開対象の表示のみ（投稿しない）"
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        working-directory: reel-bot
+        run: npm ci
+
+      - name: Build args
+        id: args
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then ARGS="$ARGS --date ${{ github.event.inputs.date }}"; fi
+          if [ -n "${{ github.event.inputs.id }}" ]; then ARGS="$ARGS --id ${{ github.event.inputs.id }}"; fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          echo "value=$ARGS" >> "$GITHUB_OUTPUT"
+
+      - name: Run publish
+        working-directory: reel-bot
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GSHEET_ID: ${{ secrets.GSHEET_ID }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+        run: node src/publish.js ${{ steps.args.outputs.value }}

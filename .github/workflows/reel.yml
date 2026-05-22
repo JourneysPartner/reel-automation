@@ -1,0 +1,91 @@
+name: reel-auto
+
+# 当面は手動トリガーのみ（自動投稿はユーザー指示でストップ中）。
+# 定期実行する場合は schedule のコメントを外す。
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "YYYY-MM-DD（output/posts/<date>/caption.md を元に生成）"
+        required: false
+      text:
+        description: "直接テキストから生成（date より優先しない・排他）"
+        required: false
+      url:
+        description: "記事URLから生成（排他）"
+        required: false
+      post:
+        description: "Instagram へ実際に公開する（true で公開、既定は生成のみ）"
+        type: boolean
+        default: false
+  # schedule:
+  #   - cron: "0 10 * * 1,3,5"   # 月水金 19:00 JST 例（10:00 UTC）
+
+jobs:
+  reel:
+    runs-on: ubuntu-latest
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        working-directory: reel-bot
+        run: npm ci
+
+      - name: Wait for VOICEVOX engine
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:50021/version > /dev/null; then
+              echo "VOICEVOX ready: $(curl -s http://localhost:50021/version)"
+              exit 0
+            fi
+            echo "waiting for VOICEVOX... ($i)"
+            sleep 3
+          done
+          echo "VOICEVOX did not become ready in time" >&2
+          exit 1
+
+      - name: Build args
+        id: args
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then ARGS="$ARGS --date ${{ github.event.inputs.date }}"; fi
+          if [ -n "${{ github.event.inputs.text }}" ]; then ARGS="$ARGS --text \"${{ github.event.inputs.text }}\""; fi
+          if [ -n "${{ github.event.inputs.url }}" ]; then ARGS="$ARGS --url ${{ github.event.inputs.url }}"; fi
+          if [ "${{ github.event.inputs.post }}" = "true" ]; then ARGS="$ARGS --post"; fi
+          echo "value=$ARGS" >> "$GITHUB_OUTPUT"
+
+      - name: Run reel pipeline
+        working-directory: reel-bot
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          VOICEVOX_HOST: http://localhost:50021
+        run: node src/index.js ${{ steps.args.outputs.value }}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-output
+          path: |
+            output/reels/**/script.json
+            output/reels/**/timings.json
+            output/reels/**/reel.mp4
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,0 +1,28 @@
+# 機密情報（絶対にコミットしない）
+.env
+.env.*
+!.env.example
+*.json.key
+# GCP サービスアカウント鍵（ファイル名パターン）
+reels-automation-*.json
+*service-account*.json
+# GitHub Actions で生成される一時鍵
+reel-bot/.gcp-sa-key.json
+
+# 依存・ビルド
+node_modules/
+reel-bot/node_modules/
+
+# 生成物（CIで毎回生成するためコミット不要）
+output/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+*.log

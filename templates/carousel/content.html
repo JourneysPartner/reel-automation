@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      position: relative;
+      color: {{ brand_text_color }};
+      background:
+        radial-gradient(circle at 95% 105%, rgba(200, 169, 110, 0.22) 0%, rgba(200, 169, 110, 0.06) 28%, transparent 50%),
+        radial-gradient(ellipse at 10% 0%, rgba(255, 255, 255, 0.7) 0%, transparent 40%),
+        {{ brand_background_color }};
+    }
+
+    .bg-stripes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        135deg,
+        rgba(15, 27, 45, 0.025) 0,
+        rgba(15, 27, 45, 0.025) 2px,
+        transparent 2px,
+        transparent 26px
+      );
+      z-index: 0;
+    }
+
+    /* === ウォーターマーク（年号）拡大強化 === */
+    .watermark {
+      position: absolute;
+      bottom: 230px;
+      right: -60px;
+      font-size: 420px;
+      font-weight: 900;
+      line-height: 0.85;
+      color: rgba(200, 169, 110, 0.10);
+      letter-spacing: -0.05em;
+      z-index: 0;
+      pointer-events: none;
+      text-shadow: 0 0 1px rgba(200, 169, 110, 0.06);
+    }
+
+    .slide-num {
+      position: absolute;
+      top: 56px;
+      right: 80px;
+      color: {{ brand_accent_color }};
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      z-index: 5;
+    }
+
+    /* === ゾーン1: トップ headline (110-300px) === */
+    .zone-top {
+      position: absolute;
+      top: 110px;
+      left: 70px;
+      right: 70px;
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      z-index: 3;
+    }
+    .number-circle {
+      flex-shrink: 0;
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, {{ brand_accent_color }} 0%, #B89559 100%);
+      color: {{ brand_main_color }};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 900;
+      box-shadow:
+        0 12px 28px -8px rgba(15, 27, 45, 0.30),
+        0 0 0 6px rgba(200, 169, 110, 0.14),
+        inset 0 -3px 8px rgba(15, 27, 45, 0.10);
+      margin-top: 4px;
+    }
+    .headline-block {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      gap: 22px;
+      align-items: stretch;
+    }
+    .headline-bar {
+      width: 12px;
+      background: linear-gradient(180deg, {{ brand_accent_color }} 0%, #B89559 100%);
+      border-radius: 6px;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(200, 169, 110, 0.4);
+    }
+    .headline-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .label {
+      color: {{ brand_accent_color }};
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+    .main-headline {
+      color: {{ brand_main_color }};
+      font-size: {{ main_headline_font_size }}px;
+      font-weight: 900;
+      line-height: 1.22;
+      letter-spacing: 0.005em;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .main-headline .head-emoji {
+      font-size: 1.18em;
+      margin-right: 0.14em;
+      vertical-align: -0.05em;
+    }
+    /* 蛍光ペン風のゴールドハイライト */
+    .main-headline .head-text {
+      background-image: linear-gradient(
+        transparent 64%,
+        rgba(200, 169, 110, 0.42) 64%,
+        rgba(200, 169, 110, 0.42) 92%,
+        transparent 92%
+      );
+      background-repeat: no-repeat;
+      padding: 0 4px;
+    }
+
+    /* === ゾーン2: ミドル
+       flex column 構造で「body-card 直下〜GUARDIAN VOICE 直上」をキャラ画像が自動的に埋める
+       bodyの長短にかかわらず、character-area が残余領域を計算してキャラを最大化する */
+    .zone-middle {
+      position: absolute;
+      top: 280px;       /* headline 直下にぴったり寄せる */
+      left: 60px;
+      right: 60px;
+      bottom: 280px;    /* GUARDIAN VOICE 上端まで */
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+    }
+    .body-card {
+      width: 100%;
+      flex-shrink: 0;   /* キャラ領域確保のために縮まないこと */
+      background:
+        linear-gradient(135deg, #ffffff 0%, #fef7ea 100%);
+      border-radius: 28px;
+      padding: 40px 56px;
+      box-shadow:
+        0 36px 64px -32px rgba(15, 27, 45, 0.32),
+        0 6px 14px -8px rgba(15, 27, 45, 0.18),
+        0 1px 0 rgba(255, 255, 255, 0.95) inset;
+      border: 1.5px solid rgba(200, 169, 110, 0.30);
+      position: relative;
+      overflow: hidden;
+    }
+    /* body-card と GUARDIAN VOICE の間の余白部分。flex で残余を取得し、キャラを最大化 */
+    .character-area {
+      flex: 1 1 0;
+      min-height: 0;       /* flex子が overflow しないようにする重要パラメータ */
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-top: 16px;   /* body-card 直下に小さなブレス */
+      overflow: hidden;
+    }
+    .body {
+      position: relative;
+      z-index: 1;
+      font-size: 36px;
+      font-weight: 500;
+      line-height: 1.65;
+      letter-spacing: 0.015em;
+      color: {{ brand_text_color }};
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    /* body カード内ウォーターマーク絵文字（headline 由来） */
+    .slide-emoji {
+      position: absolute;
+      right: 36px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 200px;
+      line-height: 1;
+      opacity: 0.10;
+      pointer-events: none;
+      z-index: 0;
+      filter: grayscale(0.2);
+    }
+    .body .num {
+      color: {{ brand_accent_color }};
+      font-weight: 900;
+      font-size: 1.10em;
+    }
+
+    /* === ゾーン3: ボトム 守護神ボイス + footer (810-1080px) === */
+    .zone-bottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 270px;
+      z-index: 4;
+    }
+    .guardian-strip {
+      position: absolute;
+      left: 50px;
+      right: 50px;
+      top: 24px;
+      height: 148px;
+      background: linear-gradient(135deg, {{ brand_main_color }} 0%, #243447 100%);
+      border-radius: 22px;
+      padding: 22px 36px 22px 32px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      box-shadow:
+        0 18px 40px -22px rgba(15, 27, 45, 0.55),
+        0 0 0 1px rgba(200, 169, 110, 0.28);
+    }
+    /* GUARDIAN VOICE 内アイコン用（現在は未使用）。残置で互換性確保 */
+    .guardian-icon-img {
+      display: none;
+    }
+
+    /* キャラ全身像: character-area の高さに合わせて自動スケール
+       身長アスペクト比を維持しつつ、利用可能な高さを最大限使う */
+    .slide-character {
+      max-height: 100%;
+      max-width: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.32))
+              drop-shadow(0 0 20px rgba(200, 169, 110, 0.18));
+      pointer-events: none;
+    }
+    .guardian-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .guardian-label {
+      color: {{ brand_accent_color }};
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      margin-bottom: 4px;
+    }
+    .guardian-comment {
+      color: #ffffff;
+      font-size: {{ guardian_voice_font_size }}px;  /* 文字数に応じて自動調整 */
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: 0.02em;
+      white-space: nowrap;          /* 必ず1行に収める */
+      overflow: hidden;
+      text-overflow: ellipsis;       /* 万一はみ出したら ... で省略 */
+    }
+
+    .footer-divider {
+      position: absolute;
+      bottom: 88px;
+      left: 130px;
+      right: 130px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, {{ brand_accent_color }} 35%, {{ brand_accent_color }} 65%, transparent 100%);
+      opacity: 0.55;
+      z-index: 5;
+    }
+    .account {
+      position: absolute;
+      bottom: 30px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: rgba(15, 27, 45, 0.55);
+      font-size: 20px;
+      letter-spacing: 0.15em;
+      font-weight: 500;
+      z-index: 5;
+    }
+
+    .left-line {
+      position: absolute;
+      top: 80px;
+      bottom: 290px;
+      left: 32px;
+      width: 6px;
+      background: {{ brand_accent_color }};
+      border-radius: 3px;
+      opacity: 0.35;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-stripes"></div>
+  {% if watermark_text %}<div class="watermark">{{ watermark_text }}</div>{% endif %}
+  <div class="left-line"></div>
+
+  <div class="slide-num">{{ slide_index }} / {{ total_slides }}</div>
+
+  <!-- ゾーン1: トップ -->
+  <div class="zone-top">
+    <div class="number-circle">{{ slide_index }}</div>
+    <div class="headline-block">
+      <div class="headline-bar"></div>
+      <div class="headline-text">
+        {% if label %}<div class="label">{{ label }}</div>{% endif %}
+        <div class="main-headline">{% if main_emoji %}<span class="head-emoji">{{ main_emoji }}</span>{% endif %}<span class="head-text">{{ main_text or main_headline }}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ゾーン2: ミドル（body-card + character-area を flex 列で配置） -->
+  <div class="zone-middle">
+    <div class="body-card">
+      {% if slide_emoji %}<div class="slide-emoji">{{ slide_emoji }}</div>{% endif %}
+      <div class="body">{{ body }}</div>
+    </div>
+    <div class="character-area">
+      {% if character_base64 %}<img class="slide-character" src="data:image/png;base64,{{ character_base64 }}" alt="守護神" />{% endif %}
+    </div>
+  </div>
+
+  <!-- ゾーン3: ボトム -->
+  <div class="zone-bottom">
+    <div class="guardian-strip">
+      <div class="guardian-text">
+        <div class="guardian-label">GUARDIAN VOICE</div>
+        <div class="guardian-comment">{{ guardian_comment }}</div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="account">{{ account_name }}</div>
+  </div>
+</body>
+</html>

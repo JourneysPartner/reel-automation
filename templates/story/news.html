@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      position: relative;
+      color: #ffffff;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(220, 50, 50, 0.10) 0%, transparent 35%),
+        radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(200, 169, 110, 0.10) 0%, transparent 55%),
+        linear-gradient(180deg, #2A3A4F 0%, {{ brand_main_color }} 50%, #131C28 100%);
+    }
+
+    /* 中央背景の盾モチーフ */
+    .bg-shield {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 720px;
+      height: 820px;
+      transform: translate(-50%, -50%);
+      background: {{ brand_accent_color }};
+      clip-path: polygon(50% 0, 100% 16%, 100% 60%, 50% 100%, 0 60%, 0 16%);
+      opacity: 0.05;
+      z-index: 0;
+    }
+
+    /* === Top: ブランド名 + TODAY'S NOTE === */
+    .top-zone {
+      position: absolute;
+      top: 90px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 2;
+    }
+    .brand-name {
+      color: {{ brand_accent_color }};
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.5em;
+      padding-left: 0.5em;
+      margin-bottom: 18px;
+    }
+    .brand-name::before,
+    .brand-name::after {
+      content: "";
+      display: inline-block;
+      width: 60px;
+      height: 1px;
+      background: {{ brand_accent_color }};
+      vertical-align: middle;
+      margin: 0 26px;
+      opacity: 0.7;
+    }
+    .label {
+      color: {{ brand_accent_color }};
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.4em;
+      padding-left: 0.4em;
+    }
+    .label::before,
+    .label::after {
+      content: "";
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: {{ brand_accent_color }};
+      vertical-align: middle;
+      margin: 0 14px;
+    }
+
+    /* === Center: 本文 === */
+    .text-zone {
+      position: absolute;
+      top: 50%;
+      left: 100px;
+      right: 100px;
+      transform: translateY(-50%);
+      text-align: center;
+      z-index: 3;
+    }
+    .text {
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1.65;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .text-mark {
+      display: block;
+      width: 80px;
+      height: 4px;
+      background: {{ brand_accent_color }};
+      margin: 50px auto 0;
+      box-shadow: 0 0 14px rgba(200, 169, 110, 0.5);
+    }
+
+    /* === Bottom: キャラ + アカウント === */
+    .bottom-zone {
+      position: absolute;
+      bottom: 90px;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      z-index: 3;
+    }
+    .character {
+      width: auto;
+      height: 160px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
+    }
+    .account {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 24px;
+      letter-spacing: 0.15em;
+    }
+    .scheduled-time {
+      color: {{ brand_accent_color }};
+      font-size: 22px;
+      letter-spacing: 0.3em;
+      padding-left: 0.3em;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-shield"></div>
+
+  <div class="top-zone">
+    <div class="brand-name">{{ brand_name }}</div>
+    <div class="label">TODAY'S NOTE</div>
+  </div>
+
+  <div class="text-zone">
+    <div class="text">{{ text }}</div>
+    <span class="text-mark"></span>
+  </div>
+
+  <div class="bottom-zone">
+    {% if character_base64 %}<img class="character" src="data:image/png;base64,{{ character_base64 }}" alt="守護神" />{% endif %}
+    <div class="scheduled-time">{{ scheduled_time }}</div>
+    <div class="account">{{ account_name }}</div>
+  </div>
+</body>
+</html>

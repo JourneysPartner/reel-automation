@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      position: relative;
+      color: #ffffff;
+      background:
+        radial-gradient(ellipse at 50% 25%, rgba(255, 255, 255, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 110%, rgba(200, 169, 110, 0.10) 0%, transparent 55%),
+        linear-gradient(180deg, #2A3A4F 0%, {{ brand_main_color }} 50%, #131C28 100%);
+    }
+
+    .bg-shield {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 660px;
+      height: 760px;
+      transform: translate(-50%, -50%);
+      background: {{ brand_accent_color }};
+      clip-path: polygon(50% 0, 100% 16%, 100% 60%, 50% 100%, 0 60%, 0 16%);
+      opacity: 0.05;
+      z-index: 0;
+    }
+
+    .left-line {
+      position: absolute;
+      top: 80px;
+      bottom: 80px;
+      left: 60px;
+      width: 8px;
+      background: {{ brand_accent_color }};
+      z-index: 2;
+    }
+    .slide-num {
+      position: absolute;
+      top: 60px;
+      right: 80px;
+      color: {{ brand_accent_color }};
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      z-index: 2;
+    }
+
+    /* === 上部: 3メリット === */
+    .benefits {
+      position: absolute;
+      top: 130px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 3;
+    }
+    .benefits-label {
+      color: {{ brand_accent_color }};
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5em;
+      padding-left: 0.5em;
+      margin-bottom: 22px;
+    }
+    .benefit-list {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: flex-start;
+      text-align: left;
+    }
+    .benefit-item {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .benefit-check {
+      color: {{ brand_accent_color }};
+      font-size: 28px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    /* === 中央: 本文 === */
+    .body-block {
+      position: absolute;
+      top: 410px;
+      left: 100px;
+      right: 100px;
+      text-align: center;
+      z-index: 3;
+    }
+    .next-step {
+      color: {{ brand_accent_color }};
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.5em;
+      padding-left: 0.5em;
+      margin-bottom: 26px;
+    }
+    .next-step::before,
+    .next-step::after {
+      content: "";
+      display: inline-block;
+      width: 36px;
+      height: 1px;
+      background: {{ brand_accent_color }};
+      vertical-align: middle;
+      margin: 0 18px;
+    }
+    .body {
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1.5;
+      letter-spacing: 0.03em;
+      color: #ffffff;
+      text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .body .hl {
+      color: {{ brand_accent_color }};
+      font-weight: 900;
+      text-shadow: 0 0 18px rgba(200, 169, 110, 0.5);
+      padding: 0 4px;
+    }
+
+    /* === ボタンゾーン === */
+    .button-zone {
+      position: absolute;
+      bottom: 230px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 3;
+    }
+    .tap-arrow {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: 0.12em;
+      animation: none;
+    }
+    /* button-row / cta-character は廃止（CTA スライドにキャラは置かない） */
+    .gold-button {
+      display: inline-block;
+      padding: 26px 72px;
+      background: linear-gradient(135deg, #E0BD7B 0%, {{ brand_accent_color }} 50%, #B89559 100%);
+      color: {{ brand_main_color }};
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      border-radius: 999px;
+      box-shadow:
+        0 18px 36px -10px rgba(200, 169, 110, 0.55),
+        0 0 0 4px rgba(200, 169, 110, 0.18),
+        inset 0 2px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(15, 27, 45, 0.18);
+    }
+
+    .keyword-line {
+      margin-top: 22px;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+    }
+    .keyword-line .kw {
+      color: {{ brand_accent_color }};
+      font-weight: 900;
+      padding: 2px 12px;
+      border: 1px solid {{ brand_accent_color }};
+      border-radius: 6px;
+      margin: 0 4px;
+    }
+
+    /* === ボトムのブランドバー === */
+    .brand-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 3;
+      background: linear-gradient(180deg, transparent 0%, rgba(15, 27, 45, 0.55) 100%);
+    }
+    .brand-bar::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 130px;
+      right: 130px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, {{ brand_accent_color }} 50%, transparent 100%);
+      opacity: 0.6;
+    }
+    .brand-bar-shield {
+      width: 32px;
+      height: 38px;
+      background: linear-gradient(180deg, {{ brand_accent_color }} 0%, #B89559 100%);
+      clip-path: polygon(50% 0, 100% 18%, 100% 65%, 50% 100%, 0 65%, 0 18%);
+    }
+    .brand-bar-name {
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      padding-left: 0.3em;
+    }
+    .brand-bar-account {
+      color: rgba(200, 169, 110, 0.75);
+      font-size: 16px;
+      letter-spacing: 0.1em;
+      margin-left: 14px;
+      padding-left: 14px;
+      border-left: 1px solid rgba(200, 169, 110, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-shield"></div>
+  <div class="left-line"></div>
+  <div class="slide-num">{{ slide_index }} / {{ total_slides }}</div>
+
+  <!-- 3メリット -->
+  <div class="benefits">
+    <div class="benefits-label">FREE BENEFITS</div>
+    <div class="benefit-list">
+      <div class="benefit-item"><span class="benefit-check">✅</span><span>無料でチェック</span></div>
+      <div class="benefit-item"><span class="benefit-check">✅</span><span>あなたの状況に合わせて回答</span></div>
+      <div class="benefit-item"><span class="benefit-check">✅</span><span>秘密厳守</span></div>
+    </div>
+  </div>
+
+  <!-- 本文 -->
+  <div class="body-block">
+    <div class="next-step">NEXT STEP</div>
+    <div class="body">{{ body }}</div>
+  </div>
+
+  <!-- ボタン -->
+  <div class="button-zone">
+    <div class="tap-arrow">👇 タップしてLINEへ</div>
+    <div class="gold-button">{{ cta_text or headline }}</div>
+    {% if cta_keyword %}
+    <div class="keyword-line">合言葉: <span class="kw">{{ cta_keyword }}</span> と送ってね</div>
+    {% endif %}
+  </div>
+
+  <!-- ブランドバー -->
+  <div class="brand-bar">
+    <div class="brand-bar-shield"></div>
+    <div class="brand-bar-name">守護神税理士</div>
+    <div class="brand-bar-account">{{ account_name }}</div>
+  </div>
+</body>
+</html>

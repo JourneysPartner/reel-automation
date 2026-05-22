@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', 'Noto Color Emoji', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body {
+      position: relative;
+      color: #ffffff;
+      background:
+        /* 上部に強めの警告色（紅蓮） */
+        radial-gradient(ellipse at 50% 0%, rgba(220, 50, 50, 0.18) 0%, transparent 42%),
+        radial-gradient(ellipse at 50% 25%, rgba(255, 255, 255, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 110%, rgba(200, 169, 110, 0.10) 0%, transparent 55%),
+        linear-gradient(180deg, #2A3A4F 0%, {{ brand_main_color }} 50%, #131C28 100%);
+    }
+
+    /* === 中央の半透明盾モチーフ === */
+    .bg-shield {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 720px;
+      height: 820px;
+      transform: translate(-50%, -52%);
+      background: {{ brand_accent_color }};
+      clip-path: polygon(50% 0, 100% 16%, 100% 60%, 50% 100%, 0 60%, 0 16%);
+      opacity: 0.06;
+      z-index: 0;
+    }
+    .bg-shield-inner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 580px;
+      height: 660px;
+      transform: translate(-50%, -52%);
+      border: 2px solid {{ brand_accent_color }};
+      clip-path: polygon(50% 0, 100% 16%, 100% 60%, 50% 100%, 0 60%, 0 16%);
+      opacity: 0.18;
+      z-index: 0;
+    }
+
+    .left-line {
+      position: absolute;
+      top: 80px;
+      bottom: 200px;
+      left: 60px;
+      width: 8px;
+      background: {{ brand_accent_color }};
+      z-index: 2;
+    }
+    .slide-num {
+      position: absolute;
+      top: 60px;
+      right: 80px;
+      color: {{ brand_accent_color }};
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      z-index: 2;
+    }
+
+    /* === 上部のブランドロゴ === */
+    .brand-name-top {
+      position: absolute;
+      top: 220px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: {{ brand_accent_color }};
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.5em;
+      padding-left: 0.5em;
+      z-index: 2;
+    }
+    .brand-name-top::before,
+    .brand-name-top::after {
+      content: "";
+      display: inline-block;
+      width: 50px;
+      height: 1px;
+      background: {{ brand_accent_color }};
+      vertical-align: middle;
+      margin: 0 22px;
+      opacity: 0.7;
+    }
+
+    /* === 中央フック === */
+    .hook-wrap {
+      position: absolute;
+      top: 50%;
+      left: 100px;
+      right: 100px;
+      transform: translateY(-50%);
+      text-align: center;
+      z-index: 3;
+    }
+    .hook-emoji-row {
+      font-size: 96px;
+      line-height: 1;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 28px rgba(220, 50, 50, 0.3));
+    }
+    .hook-text {
+      font-size: {{ headline_font_size }}px;
+      font-weight: 900;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      text-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.55),
+        0 0 36px rgba(200, 169, 110, 0.22);
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      display: inline-block;
+      position: relative;
+      padding-bottom: 12px;
+    }
+    /* オレンジのアンダーライン強調マーカー */
+    .hook-text::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 14px;
+      background: linear-gradient(90deg, transparent 0%, rgba(232, 138, 60, 0.55) 15%, rgba(232, 138, 60, 0.7) 50%, rgba(232, 138, 60, 0.55) 85%, transparent 100%);
+      border-radius: 7px;
+      filter: blur(2px);
+    }
+
+    /* === ボトムのブランドバー === */
+    .brand-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      z-index: 3;
+      background: linear-gradient(180deg, transparent 0%, rgba(15, 27, 45, 0.5) 100%);
+    }
+    .brand-bar::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 130px;
+      right: 130px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, {{ brand_accent_color }} 50%, transparent 100%);
+      opacity: 0.6;
+    }
+    .brand-bar-character {
+      width: auto;
+      height: 110px;            /* ブランドバー内に全身を収める */
+      max-width: 90px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    }
+    .brand-bar-name {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      padding-left: 0.3em;
+    }
+    .brand-bar-account {
+      color: rgba(200, 169, 110, 0.75);
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      margin-left: 18px;
+      padding-left: 18px;
+      border-left: 1px solid rgba(200, 169, 110, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-shield"></div>
+  <div class="bg-shield-inner"></div>
+  <div class="left-line"></div>
+  <div class="slide-num">{{ slide_index }} / {{ total_slides }}</div>
+
+  <div class="brand-name-top">{{ brand_name }}</div>
+
+  <div class="hook-wrap">
+    {% if hook_emoji %}<div class="hook-emoji-row">{{ hook_emoji }}</div>{% endif %}
+    <div class="hook-text">{{ hook_text or headline }}</div>
+  </div>
+
+  <div class="brand-bar">
+    {% if character_base64 %}<img class="brand-bar-character" src="data:image/png;base64,{{ character_base64 }}" alt="守護神" />{% endif %}
+    <div class="brand-bar-name">守護神税理士</div>
+    <div class="brand-bar-account">{{ account_name }}</div>
+  </div>
+</body>
+</html>

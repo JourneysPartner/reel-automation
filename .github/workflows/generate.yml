@@ -1,0 +1,86 @@
+name: reel-generate
+
+# 毎朝、公開予定の数日前のリールを自動生成し、Drive保存＋スプレッドシート更新＋ChatWork通知。
+# 投稿はしない（確認後、別途公開フローで行う）。
+on:
+  schedule:
+    - cron: "0 23 * * *" # 毎日 08:00 JST（23:00 UTC）
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "「今日」を上書き（YYYY-MM-DD, テスト用）"
+        required: false
+      id:
+        description: "指定 publish_date の1件だけ生成（YYYY-MM-DD）"
+        required: false
+      dry_run:
+        description: "対象表示のみ（生成しない）"
+        type: boolean
+        default: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        working-directory: reel-bot
+        run: npm ci
+
+      - name: Wait for VOICEVOX engine
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:50021/version > /dev/null; then
+              echo "VOICEVOX ready"; exit 0
+            fi
+            echo "waiting for VOICEVOX... ($i)"; sleep 3
+          done
+          echo "VOICEVOX not ready" >&2; exit 1
+
+      - name: Build args
+        id: args
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then ARGS="$ARGS --date ${{ github.event.inputs.date }}"; fi
+          if [ -n "${{ github.event.inputs.id }}" ]; then ARGS="$ARGS --id ${{ github.event.inputs.id }}"; fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          echo "value=$ARGS" >> "$GITHUB_OUTPUT"
+
+      - name: Run scheduler (generate due reels)
+        working-directory: reel-bot
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          GSHEET_ID: ${{ secrets.GSHEET_ID }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APPROVAL_BASE_URL: ${{ secrets.APPROVAL_BASE_URL }}
+          APPROVAL_SECRET: ${{ secrets.APPROVAL_SECRET }}
+          LEAD_DAYS: "3"
+          VOICEVOX_HOST: http://localhost:50021
+        run: node src/scheduler.js ${{ steps.args.outputs.value }}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-output
+          path: |
+            output/reels/**/script.json
+            output/reels/**/reel.mp4
+          if-no-files-found: ignore
+          retention-days: 7

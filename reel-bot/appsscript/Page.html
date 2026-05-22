@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <style>
+      body { font-family: -apple-system, "Segoe UI", sans-serif; max-width: 520px; margin: 0 auto; padding: 16px; color: #1b2838; background: #f7f4ee; }
+      h2 { margin: 8px 0 4px; }
+      .meta { color: #555; font-size: 14px; margin: 2px 0; }
+      .preview { width: 100%; aspect-ratio: 9/16; border: 0; border-radius: 12px; background: #000; margin: 12px 0; }
+      .link { display: inline-block; margin: 6px 0 16px; color: #1a73e8; }
+      form { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+      button { font-size: 18px; font-weight: 700; padding: 16px; border: 0; border-radius: 12px; color: #fff; }
+      .approve { background: #1a8a4a; }
+      .skip { background: #8a8a8a; }
+      .done { background: #fff; border-radius: 12px; padding: 16px; text-align: center; color: #444; }
+    </style>
+  </head>
+  <body>
+    <h2>リール確認</h2>
+    <p class="meta">公開予定: <?= publishDate ?></p>
+    <p class="meta">テーマ: <?= theme ?></p>
+
+    <? if (fileId) { ?>
+    <iframe class="preview" src="https://drive.google.com/file/d/<?= fileId ?>/preview" allow="autoplay"></iframe>
+    <? } ?>
+    <? if (previewUrl) { ?>
+    <a class="link" href="<?= previewUrl ?>" target="_blank">▶ 動画をDriveで開く</a>
+    <? } ?>
+
+    <? if (status === 'approved' || status === 'skipped') { ?>
+    <div class="done">この投稿は既に「<?= status ?>」です。</div>
+    <? } else { ?>
+    <form method="post" action="<?= scriptUrl ?>">
+      <input type="hidden" name="id" value="<?= id ?>" />
+      <input type="hidden" name="token" value="<?= token ?>" />
+      <button class="approve" type="submit" name="action" value="approve">✅ 公開する（予定日に投稿）</button>
+      <button class="skip" type="submit" name="action" value="skip">⏭ 今回は見送り</button>
+    </form>
+    <? } ?>
+  </body>
+</html>
