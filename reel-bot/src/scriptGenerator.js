@@ -109,21 +109,43 @@ function extractJson(textOut) {
 }
 
 // ---------- Claude 呼び出し ----------
-export async function generateScript(sourceText, { model = MODEL, revisionComment = "" } = {}) {
+export async function generateScript(
+  sourceText,
+  { model = MODEL, revisionComment = "", previousScript = null } = {}
+) {
   if (!env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY が未設定です");
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
-  let userContent = USER_TEMPLATE(sourceText);
-  if (revisionComment && revisionComment.trim()) {
-    userContent +=
-      `\n\n【修正指示】前回の台本に対する依頼者からのフィードバックです。` +
-      `必ず反映して、より良い台本に作り直してください:\n${revisionComment.trim()}`;
+  const isEdit = !!(revisionComment && revisionComment.trim() && previousScript);
+  let userContent;
+  let temperature;
+
+  if (isEdit) {
+    // 編集モード: 前回台本を渡し「指示箇所だけ最小修正」。忠実性のため低温。
+    const prev = {
+      title: previousScript.title,
+      hook: previousScript.hook,
+      body: previousScript.body,
+      closing: previousScript.closing,
+      full_script: previousScript.full_script,
+      hashtags: previousScript.hashtags,
+    };
+    userContent =
+      `以下は現在のリール台本です（JSON）。\n\n${JSON.stringify(prev, null, 2)}\n\n` +
+      `【修正指示】次の指示の箇所だけを直してください。` +
+      `指示と関係ない文言・表現・順序は一字一句変えないでください:\n${revisionComment.trim()}\n\n` +
+      `上記ルールを守りつつ、修正後の台本「全体」を同じJSON形式で出力してください。` +
+      `full_script は hook+body+closing と必ず一致させてください。`;
+    temperature = 0.2;
+  } else {
+    userContent = USER_TEMPLATE(sourceText);
+    temperature = 0.8;
   }
 
   const resp = await client.messages.create({
     model,
     max_tokens: 1500,
-    temperature: 0.8,
+    temperature,
     system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: userContent }],
   });

@@ -23,7 +23,7 @@ import path from "path";
 import { OUTPUT_REELS, CHARACTER_DIR, env } from "./config.js";
 import { loadSource, generateScript, saveScript } from "./scriptGenerator.js";
 import { checkEngine, findSpeakerId, synthesizeFull } from "./voicevoxClient.js";
-import { uploadFile } from "./gcs.js";
+import { uploadFile, downloadText } from "./gcs.js";
 import { renderReelRemotion } from "./remotionRender.js";
 import { postReel, buildCaption } from "./instagram.js";
 import { archiveReel } from "./googleDrive.js";
@@ -68,10 +68,27 @@ export async function runPipeline(args = {}) {
     console.log("=== ① 台本（既存を再利用）===");
     script = JSON.parse(fs.readFileSync(scriptPath, "utf-8"));
   } else {
-    console.log(args.revision ? "=== ① 台本再生成（修正反映）===" : "=== ① 台本生成 (Sonnet 4.6) ===");
+    console.log(args.revision ? "=== ① 台本修正（指示箇所のみ）===" : "=== ① 台本生成 (Sonnet 4.6) ===");
     let sourceText = sourceInfo.sourceText;
     if (sourceInfo.sourceTextPromise) sourceText = await sourceInfo.sourceTextPromise;
-    script = await generateScript(sourceText, { revisionComment: args.revision || "" });
+
+    // 差し戻し時は前回台本を渡して「最小修正」する（ローカル→無ければGCS）
+    let previousScript = null;
+    if (args.revision) {
+      if (fs.existsSync(scriptPath)) {
+        previousScript = JSON.parse(fs.readFileSync(scriptPath, "utf-8"));
+      } else {
+        try {
+          previousScript = JSON.parse(await downloadText(`reels/${slug}/script.json`));
+        } catch {
+          /* 前回台本が取れなければ通常生成にフォールバック */
+        }
+      }
+    }
+    script = await generateScript(sourceText, {
+      revisionComment: args.revision || "",
+      previousScript,
+    });
     saveScript(script, slug);
   }
   console.log(`  hook: ${script.hook}`);
