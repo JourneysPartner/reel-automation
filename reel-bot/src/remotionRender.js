@@ -8,7 +8,15 @@ import path from "path";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition, ensureBrowser } from "@remotion/renderer";
 import { REEL_BOT_ROOT, BRAND } from "./config.js";
-import { wrapByBunsetsu } from "./jpWrap.js";
+import { wrapByBunsetsu, strWidth } from "./jpWrap.js";
+
+// フックの自動フォントサイズ（太字・幅92%に収まるよう、行の最大幅から算出）
+const HOOK_FONT_MAX_VMIN = 8.2;
+const HOOK_FIT_CONST = 84; // 経験値: フォントvmin = min(8.2, 84 / 行の最大表示幅)
+function hookFontVmin(wrappedHook) {
+  const maxLine = Math.max(1, ...wrappedHook.split("\n").map((l) => strWidth(l)));
+  return Math.min(HOOK_FONT_MAX_VMIN, Math.round((HOOK_FIT_CONST / maxLine) * 100) / 100);
+}
 
 const FPS = 30;
 // 字幕1行の最大「表示幅」（全角=1.0/半角=0.5）。白カード(7vmin)に収まる実効値。
@@ -63,8 +71,10 @@ export async function renderReelRemotion({
   const tail = 0.6;
   const totalDurationSec = (timings?.length ? timings[timings.length - 1].end : 10) + tail;
 
+  const wrappedHook = await wrapByBunsetsu(script.hook ?? "", HOOK_CPL); // フックも自然改行
   const inputProps = {
-    hook: await wrapByBunsetsu(script.hook ?? "", HOOK_CPL), // フックも自然改行
+    hook: wrappedHook,
+    hookFontSize: `${hookFontVmin(wrappedHook)}vmin`, // 行長に応じて自動調整
     credit: BRAND.voicevoxCredit(),
     account: BRAND.accountName,
     voiceUrl: voiceUrl ?? "",

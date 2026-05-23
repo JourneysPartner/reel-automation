@@ -25,7 +25,7 @@ function charWidth(ch) {
   if (c >= 0xff61 && c <= 0xff9f) return 0.5; // 半角カナ・半角記号
   return 1.0; // それ以外（全角：かな/漢字/全角記号）
 }
-function strWidth(s) {
+export function strWidth(s) {
   let w = 0;
   for (const ch of s) w += charWidth(ch);
   return w;

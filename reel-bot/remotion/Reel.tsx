@@ -16,6 +16,7 @@ const NAVY = "#0F1B2D";
 export type Subtitle = { text: string; from: number; durationInFrames: number };
 export type ReelProps = {
   hook: string;
+  hookFontSize?: string;
   credit: string;
   account: string;
   voiceUrl: string;
@@ -67,6 +68,7 @@ const SubtitleCard: React.FC<{ text: string }> = ({ text }) => {
 
 export const Reel: React.FC<ReelProps> = ({
   hook,
+  hookFontSize,
   credit,
   account,
   voiceUrl,
@@ -85,7 +87,7 @@ export const Reel: React.FC<ReelProps> = ({
           left: "4%",
           width: "92%",
           textAlign: "center",
-          fontSize: "8.2vmin",
+          fontSize: hookFontSize || "8.2vmin",
           fontWeight: 900,
           color: "#1B2838",
           lineHeight: "118%",

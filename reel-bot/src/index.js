@@ -128,6 +128,7 @@ export async function runPipeline(args = {}) {
   console.log("\n=== ⑤ GCS アップロード（mp4）===");
   const reelUrl = await uploadFile(reelPath, `reels/${slug}/reel.mp4`);
   await uploadFile(scriptPath, `reels/${slug}/script.json`); // 公開cronがキャプション生成に使う
+  if (fs.existsSync(timingsPath)) await uploadFile(timingsPath, `reels/${slug}/timings.json`);
   console.log(`  ✓ reel URL 取得`);
 
   // ===== ⑥ Instagram 公開 =====
