@@ -20,7 +20,7 @@
     </style>
   </head>
   <body>
-    <h2>リール確認</h2>
+    <h2><?= type === 'carousel' ? 'カルーセル確認' : 'リール確認' ?></h2>
     <p class="meta">公開予定: <?= publishDate ?></p>
     <p class="meta">テーマ: <?= theme ?></p>
 

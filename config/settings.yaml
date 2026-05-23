@@ -3,7 +3,7 @@
 # ==============================================
 
 # アカウント情報（STEP 4 で実値に置換してください）
-account_name: "@guardian_tax"
+account_name: "@guardian_tax_ac"
 brand:
   name: "守護神税理士"
   tagline: "あなたの資産を守る、最後の砦"
