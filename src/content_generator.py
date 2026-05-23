@@ -66,6 +66,16 @@ def find_post_for_day(schedule: dict, day: int) -> dict:
     )
 
 
+def find_post_for_date(schedule: dict, date: str) -> dict:
+    """date(YYYY-MM-DD) で投稿を引く。複数月を schedule.yaml に蓄積しても衝突しない。"""
+    for p in schedule.get("posts", []):
+        if str(p.get("date")) == str(date):
+            return p
+    raise ValueError(
+        f"date={date} に該当する投稿が config/schedule.yaml にありません。"
+    )
+
+
 def get_persona(personas_cfg: dict, persona_id: str) -> dict:
     for p in personas_cfg.get("personas", []):
         if p.get("id") == persona_id:
@@ -514,9 +524,9 @@ def save_outputs(post_date: str, post: dict, draft: dict, final: dict, usage_sum
 
 # ----------------------------- Main Pipeline ------------------------------
 
-def generate(day: int, dry_run: bool = False) -> dict:
+def generate(day: int | None = None, dry_run: bool = False, date: str | None = None) -> dict:
     settings, personas_cfg, schedule = load_configs()
-    post = find_post_for_day(schedule, day)
+    post = find_post_for_date(schedule, date) if date else find_post_for_day(schedule, day)
     persona = get_persona(personas_cfg, post["target_persona"])
 
     api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
@@ -654,13 +664,16 @@ def _print_summary(result: dict) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="守護神税理士 キャプション生成エンジン")
-    parser.add_argument("--day", type=int, required=True, help="schedule.yaml の day 番号")
+    parser.add_argument("--day", type=int, help="schedule.yaml の day 番号")
+    parser.add_argument("--date", help="schedule.yaml の date (YYYY-MM-DD)。複数月対応で推奨")
     parser.add_argument("--dry-run", action="store_true", help="ファイル保存せず標準出力のみ")
     parser.add_argument("--show-caption", action="store_true", help="キャプション全文を表示")
     args = parser.parse_args(argv)
+    if not args.day and not args.date:
+        parser.error("--day か --date のいずれかを指定してください")
 
     try:
-        result = generate(args.day, dry_run=args.dry_run)
+        result = generate(args.day, dry_run=args.dry_run, date=args.date)
     except Exception as e:
         print(f"[ERROR] {e}", file=sys.stderr)
         return 1

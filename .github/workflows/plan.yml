@@ -1,0 +1,59 @@
+name: monthly-plan
+
+# 毎月20日、翌月の投稿カレンダー（リール約20＋カルーセル約10）を Sonnet が自動立案し、
+# config/schedule.yaml に追記してコミット＆push。以降は generate/publish cron が拾う。
+on:
+  schedule:
+    - cron: "0 0 20 * *" # 毎月20日 09:00 JST（00:00 UTC）
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "対象月 YYYY-MM（省略時は翌月）"
+        required: false
+      dry_run:
+        description: "立案して表示のみ（追記/通知/pushしない）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # schedule.yaml を push するため
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install deps
+        working-directory: reel-bot
+        run: npm ci
+
+      - name: Build args
+        id: args
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.month }}" ]; then ARGS="$ARGS --month ${{ github.event.inputs.month }}"; fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          echo "value=$ARGS" >> "$GITHUB_OUTPUT"
+
+      - name: Plan next month
+        working-directory: reel-bot
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+        run: node src/planMonth.js ${{ steps.args.outputs.value }}
+
+      - name: Commit & push schedule.yaml
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          if git diff --quiet -- config/schedule.yaml; then
+            echo "変更なし（既に立案済みの可能性）"; exit 0
+          fi
+          git config user.name "reel-bot"
+          git config user.email "reel-bot@users.noreply.github.com"
+          git add config/schedule.yaml
+          git commit -m "翌月の投稿カレンダーを自動立案"
+          git push

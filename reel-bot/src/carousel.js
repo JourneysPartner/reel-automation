@@ -42,8 +42,8 @@ export async function generateCarousel(post, { reuse = false } = {}) {
   const dir = path.join(POSTS_DIR, date);
 
   if (!(reuse && listSlides(date).length >= 2)) {
-    if (post.day == null) throw new Error(`schedule.yaml の day がありません: ${date}`);
-    await runPython(["-m", "src.content_generator", "--day", String(post.day)]);
+    // date でlookup（複数月を schedule.yaml に蓄積しても衝突しない）
+    await runPython(["-m", "src.content_generator", "--date", date]);
     await runPython(["-m", "src.image_renderer", "--date", date]);
   }
 
