@@ -36,14 +36,11 @@ export function buildReviewMessage({ post, previewUrl, approveUrl, titlePrefix }
   lines.push(`公開予定: ${post.publish_date}`);
   if (post.theme) lines.push(`テーマ: ${post.theme}`);
   lines.push("");
-  // 単一URL（リール）のみ直リンク表示。カルーセルは承認ページで見る。
-  if (previewUrl && previewUrl.startsWith("http")) lines.push(`▶ プレビュー: ${previewUrl}`);
+  // 確認・プレビュー・操作はすべて承認ページで行う（1リンクに集約）
   if (approveUrl) {
-    lines.push("");
     lines.push(`✅ 確認・操作はこちら: ${approveUrl}`);
-  } else {
-    lines.push("");
-    lines.push("（承認ボタンは次フェーズで追加予定。今は動画確認のみ）");
+  } else if (previewUrl && previewUrl.startsWith("http")) {
+    lines.push(`▶ プレビュー: ${previewUrl}`);
   }
   lines.push("[/info]");
   return lines.join("\n");

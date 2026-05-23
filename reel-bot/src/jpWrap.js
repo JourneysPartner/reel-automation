@@ -72,8 +72,8 @@ function isOpenBracket(token) {
 function isCloseBracket(token) {
   return CLOSE_BRACKET.has(token.surface_form);
 }
-function isNumber(token) {
-  return !!token && token.pos === "名詞" && token.pos_detail_1 === "数";
+function isNoun(token) {
+  return !!token && token.pos === "名詞";
 }
 
 /**
@@ -115,11 +115,11 @@ export function buildAtoms(tokens, cpl) {
       i++;
       continue;
     }
-    // 数字の連続（8+万、10+万 等）は前に付けて「8万円」を割らない
-    const numAttach = isNumber(t) && isNumber(prevTok);
+    // 連続する名詞は結合（複合名詞: 消費税・所得税・確定申告・8万円 等を割らない）
+    const nounAttach = isNoun(t) && isNoun(prevTok);
     units.push({
       surface: t.surface_form,
-      attachLeft: attachesLeft(t) || isCloseBracket(t) || numAttach,
+      attachLeft: attachesLeft(t) || isCloseBracket(t) || nounAttach,
       attachRight: false,
     });
     prevTok = t;
