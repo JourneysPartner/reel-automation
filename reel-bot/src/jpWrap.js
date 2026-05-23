@@ -62,7 +62,7 @@ function attachesLeft(token) {
   if (pos === "記号") return !OPEN_BRACKET.has(token.surface_form); // 句読点・閉じ括弧は左付け
   if (pos === "名詞" && token.pos_detail_1 === "接尾") return true; // 接尾辞（〜円, 〜分 等）
   if (pos === "名詞" && token.pos_detail_1 === "非自立") return true; // 形式名詞（ん・の・こと・はず 等）
-  if (pos === "動詞" && token.pos_detail_1 === "接尾") return true; // 〜ておく の補助動詞など
+  if (pos === "動詞" && (token.pos_detail_1 === "接尾" || token.pos_detail_1 === "非自立")) return true; // 補助動詞（〜て/〜ておく/〜ている 等）
   return false;
 }
 

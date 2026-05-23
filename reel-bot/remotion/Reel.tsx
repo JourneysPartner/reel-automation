@@ -82,13 +82,14 @@ export const Reel: React.FC<ReelProps> = ({
           position: "absolute",
           top: "12%",
           transform: "translateY(-50%)",
-          left: "6%",
-          width: "88%",
+          left: "4%",
+          width: "92%",
           textAlign: "center",
           fontSize: "8.2vmin",
           fontWeight: 900,
           color: "#1B2838",
           lineHeight: "118%",
+          whiteSpace: "pre-line", // 事前計算した改行を反映
         }}
       >
         {hook}

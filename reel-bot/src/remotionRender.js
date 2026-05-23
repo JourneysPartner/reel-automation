@@ -13,6 +13,8 @@ import { wrapByBunsetsu } from "./jpWrap.js";
 const FPS = 30;
 // 字幕1行の最大「表示幅」（全角=1.0/半角=0.5）。白カード(7vmin)に収まる実効値。
 const SUBTITLE_CPL = 12.5;
+// フック1行の最大表示幅（8.2vmin・幅92%）。フックも形態素改行する。
+const HOOK_CPL = 11;
 
 let _serveUrl = null;
 async function getServeUrl() {
@@ -62,7 +64,7 @@ export async function renderReelRemotion({
   const totalDurationSec = (timings?.length ? timings[timings.length - 1].end : 10) + tail;
 
   const inputProps = {
-    hook: script.hook ?? "",
+    hook: await wrapByBunsetsu(script.hook ?? "", HOOK_CPL), // フックも自然改行
     credit: BRAND.voicevoxCredit(),
     account: BRAND.accountName,
     voiceUrl: voiceUrl ?? "",
