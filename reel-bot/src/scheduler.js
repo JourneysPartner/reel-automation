@@ -68,6 +68,7 @@ function parseArgs(argv) {
     else if (v === "--lead") a.lead = parseInt(argv[++i], 10);
     else if (v === "--id") a.id = argv[++i];
     else if (v === "--type") a.type = argv[++i];
+    else if (v === "--revision") a.revision = argv[++i];
   }
   return a;
 }
@@ -76,18 +77,19 @@ function themeOf(p) {
   return [p.topic, p.angle].filter(Boolean).join("／");
 }
 
-async function generateOne(p) {
+async function generateOne(p, revision = "") {
   // 状態: generating
   await upsertRow(p.date, {
     publish_date: p.date,
     type: p.type,
     theme: themeOf(p),
     status: "generating",
+    ...(revision ? { revision_comment: revision } : {}),
   });
 
   // リールは schedule の topic/angle を台本ソースに（slug=公開日）
   const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
-  await runPipeline({ text: sourceText, slug: p.date });
+  await runPipeline({ text: sourceText, slug: p.date, revision });
 
   // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
   const previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, {
@@ -101,7 +103,12 @@ async function generateOne(p) {
 
   const approveUrl = makeApprovalUrl(p.date);
   await sendMessage(
-    buildReviewMessage({ post: { publish_date: p.date, theme: themeOf(p) }, previewUrl, approveUrl })
+    buildReviewMessage({
+      post: { publish_date: p.date, theme: themeOf(p) },
+      previewUrl,
+      approveUrl,
+      titlePrefix: revision ? "🔁 修正版を再生成しました（確認おねがいします）" : undefined,
+    })
   );
   return previewUrl;
 }
@@ -139,8 +146,8 @@ async function main() {
       continue;
     }
     try {
-      console.log(`\n=== 生成: ${p.date} ===`);
-      const url = await generateOne(p);
+      console.log(`\n=== 生成: ${p.date}${args.revision ? "（修正反映）" : ""} ===`);
+      const url = await generateOne(p, args.revision || "");
       console.log(`  ✓ ${p.date} 完了。確認リンク: ${url}`);
     } catch (e) {
       console.error(`  ✗ ${p.date} 失敗: ${e.message}`);

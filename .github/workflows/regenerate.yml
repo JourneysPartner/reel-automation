@@ -1,0 +1,54 @@
+name: reel-regenerate
+
+# 承認ページで「差し戻し」を押すと、Apps Script が repository_dispatch(regenerate) を発火。
+# コメントを台本に反映して再生成 → status=review に戻して再通知。
+on:
+  repository_dispatch:
+    types: [regenerate]
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    services:
+      voicevox:
+        image: voicevox/voicevox_engine:cpu-latest
+        ports:
+          - 50021:50021
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        working-directory: reel-bot
+        run: npm ci
+
+      - name: Wait for VOICEVOX engine
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:50021/version > /dev/null; then echo ready; exit 0; fi
+            sleep 3
+          done
+          echo "VOICEVOX not ready" >&2; exit 1
+
+      - name: Regenerate with revision
+        working-directory: reel-bot
+        env:
+          # client_payload は env 経由で渡す（シェルインジェクション防止）
+          PAYLOAD_ID: ${{ github.event.client_payload.id }}
+          PAYLOAD_COMMENT: ${{ github.event.client_payload.comment }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          GSHEET_ID: ${{ secrets.GSHEET_ID }}
+          CHATWORK_API_TOKEN: ${{ secrets.CHATWORK_API_TOKEN }}
+          CHATWORK_ROOM_ID: ${{ secrets.CHATWORK_ROOM_ID }}
+          APPROVAL_BASE_URL: ${{ secrets.APPROVAL_BASE_URL }}
+          APPROVAL_SECRET: ${{ secrets.APPROVAL_SECRET }}
+          VOICEVOX_HOST: http://localhost:50021
+        run: node src/scheduler.js --id "$PAYLOAD_ID" --revision "$PAYLOAD_COMMENT"

@@ -11,7 +11,10 @@
       form { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
       button { font-size: 18px; font-weight: 700; padding: 16px; border: 0; border-radius: 12px; color: #fff; }
       .approve { background: #1a8a4a; }
+      .reject { background: #d97706; }
       .skip { background: #8a8a8a; }
+      textarea { width: 100%; box-sizing: border-box; font-size: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 10px; resize: vertical; }
+      .hint { color: #777; font-size: 13px; margin: 10px 0 2px; }
       .done { background: #fff; border-radius: 12px; padding: 16px; text-align: center; color: #444; }
     </style>
   </head>
@@ -32,6 +35,11 @@
       <input type="hidden" name="id" value="<?= id ?>" />
       <input type="hidden" name="token" value="<?= token ?>" />
       <button class="approve" type="submit" name="action" value="approve">✅ 公開する（予定日に投稿）</button>
+
+      <p class="hint">差し戻す場合は、修正内容を書いてから下のボタンを押してください</p>
+      <textarea name="comment" rows="3" placeholder="例: 数字をもっと具体的に / 締めをやわらかく / フックを別案に"></textarea>
+      <button class="reject" type="submit" name="action" value="reject">✏️ 差し戻して再生成</button>
+
       <button class="skip" type="submit" name="action" value="skip">⏭ 今回は見送り</button>
     </form>
     <? } ?>

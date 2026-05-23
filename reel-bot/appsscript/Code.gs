@@ -61,6 +61,14 @@ function handle_(e, isPost) {
       setCell_(sh, rowIdx, col['decided_at'], now);
       return resultPage_('⏭ 見送りにしました', 'この回は投稿されません。');
     }
+    if (action === 'reject') {
+      var comment = (p.comment || '').toString();
+      setCell_(sh, rowIdx, col['status'], 'rejected');
+      setCell_(sh, rowIdx, col['revision_comment'], comment);
+      setCell_(sh, rowIdx, col['decided_at'], now);
+      dispatchRegenerate_(id, comment);
+      return resultPage_('🔁 差し戻しました', 'コメントを反映して再生成します。完了すると、また確認の通知が届きます。');
+    }
     return simplePage_('エラー', '不明なアクションです。');
   }
 
@@ -81,6 +89,25 @@ function handle_(e, isPost) {
 
 function setCell_(sh, rowIdx, colIdx, val) {
   sh.getRange(rowIdx + 1, colIdx + 1).setValue(val);
+}
+
+// 差し戻し時、GitHub に再生成を依頼（repository_dispatch）。
+// Script Properties: GITHUB_TOKEN（PAT）, GITHUB_REPO（例 JourneysPartner/reel-automation）
+function dispatchRegenerate_(id, comment) {
+  var token = PROP.getProperty('GITHUB_TOKEN');
+  var repo = PROP.getProperty('GITHUB_REPO');
+  if (!token || !repo) return; // 未設定なら Sheet記録のみ（手動再生成も可）
+  UrlFetchApp.fetch('https://api.github.com/repos/' + repo + '/dispatches', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+    payload: JSON.stringify({ event_type: 'regenerate', client_payload: { id: id, comment: comment } }),
+    muteHttpExceptions: true,
+  });
 }
 
 function extractFileId_(url) {

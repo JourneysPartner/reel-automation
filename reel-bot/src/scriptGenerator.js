@@ -109,16 +109,23 @@ function extractJson(textOut) {
 }
 
 // ---------- Claude 呼び出し ----------
-export async function generateScript(sourceText, model = MODEL) {
+export async function generateScript(sourceText, { model = MODEL, revisionComment = "" } = {}) {
   if (!env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY が未設定です");
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+
+  let userContent = USER_TEMPLATE(sourceText);
+  if (revisionComment && revisionComment.trim()) {
+    userContent +=
+      `\n\n【修正指示】前回の台本に対する依頼者からのフィードバックです。` +
+      `必ず反映して、より良い台本に作り直してください:\n${revisionComment.trim()}`;
+  }
 
   const resp = await client.messages.create({
     model,
     max_tokens: 1500,
     temperature: 0.8,
     system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: USER_TEMPLATE(sourceText) }],
+    messages: [{ role: "user", content: userContent }],
   });
 
   const textOut = resp.content.filter((b) => b.type === "text").map((b) => b.text).join("");

@@ -195,6 +195,28 @@ node src/publish.js --id 2026-06-05
 
 ---
 
+## STEP 7. 差し戻し＋再生成（任意）
+
+承認ページに「✏️ 差し戻して再生成」ボタン＋コメント欄を追加。差し戻すとコメントを台本に反映して自動で作り直し、再通知する。
+
+### 7-1. GitHub PAT を作成
+- GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate
+  - Resource owner: **JourneysPartner**／Repository access: **reel-automation のみ**
+  - Permissions → Repository → **Contents: Read and write**（repository_dispatch に必要）
+  - 期限は任意（切れたら差し戻しの再生成だけ止まる。Sheetへの記録は残る）
+
+### 7-2. Apps Script に設定
+1. Script Properties に追加:
+   - `GITHUB_TOKEN` = 7-1 のPAT
+   - `GITHUB_REPO` = `JourneysPartner/reel-automation`
+2. `Code.gs` と `Page` を最新版に貼り替え（差し戻しボタン対応版）→ 保存 → **再デプロイ（新バージョン）**
+
+### 7-3. 動作
+- 承認ページでコメントを書いて「差し戻して再生成」→ Sheet status=rejected＋コメント記録 → `regenerate.yml` が起動 → 台本を作り直し → status=review に戻り再通知。
+- ローカル手動でも: `node src/scheduler.js --id 2026-06-14 --revision "フックを短く"`
+
+---
+
 ## ローカル実行コマンド早見表
 
 ```

@@ -29,9 +29,9 @@ export async function sendMessage(text, { roomId = env.CHATWORK_ROOM_ID } = {}) 
 }
 
 /** 生成完了（確認依頼）メッセージ。approveUrl は Phase 2 の承認ページ。 */
-export function buildReviewMessage({ post, previewUrl, approveUrl }) {
+export function buildReviewMessage({ post, previewUrl, approveUrl, titlePrefix }) {
   const lines = [];
-  lines.push("[info][title]🎬 リール生成完了（確認おねがいします）[/title]");
+  lines.push(`[info][title]${titlePrefix || "🎬 リール生成完了（確認おねがいします）"}[/title]`);
   lines.push(`公開予定: ${post.publish_date}`);
   if (post.theme) lines.push(`テーマ: ${post.theme}`);
   lines.push("");

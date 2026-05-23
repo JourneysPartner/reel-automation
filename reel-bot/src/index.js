@@ -64,14 +64,14 @@ export async function runPipeline(args = {}) {
 
   // ===== ① 台本 =====
   let script;
-  if (args.reuse && fs.existsSync(scriptPath)) {
+  if (args.reuse && !args.revision && fs.existsSync(scriptPath)) {
     console.log("=== ① 台本（既存を再利用）===");
     script = JSON.parse(fs.readFileSync(scriptPath, "utf-8"));
   } else {
-    console.log("=== ① 台本生成 (Sonnet 4.6) ===");
+    console.log(args.revision ? "=== ① 台本再生成（修正反映）===" : "=== ① 台本生成 (Sonnet 4.6) ===");
     let sourceText = sourceInfo.sourceText;
     if (sourceInfo.sourceTextPromise) sourceText = await sourceInfo.sourceTextPromise;
-    script = await generateScript(sourceText);
+    script = await generateScript(sourceText, { revisionComment: args.revision || "" });
     saveScript(script, slug);
   }
   console.log(`  hook: ${script.hook}`);
