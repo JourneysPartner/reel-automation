@@ -24,7 +24,8 @@ import { runPipeline } from "./index.js";
 import { getAllRows, upsertRow } from "./sheet.js";
 import { sendMessage, buildReviewMessage, buildErrorMessage } from "./chatwork.js";
 import { makeApprovalUrl } from "./approval.js";
-import { signObjectUrl } from "./gcs.js";
+import { signObjectUrl, uploadFile } from "./gcs.js";
+import { generateCarousel } from "./carousel.js";
 
 const PREVIEW_EXPIRY_MS = 7 * 24 * 3600 * 1000; // 確認用URLの有効期限（7日＝V4上限）
 
@@ -87,14 +88,25 @@ async function generateOne(p, revision = "") {
     ...(revision ? { revision_comment: revision } : {}),
   });
 
-  // リールは schedule の topic/angle を台本ソースに（slug=公開日）
-  const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
-  await runPipeline({ text: sourceText, slug: p.date, revision });
-
-  // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
-  const previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, {
-    expiryMs: PREVIEW_EXPIRY_MS,
-  });
+  let previewUrl;
+  if (p.type === "carousel") {
+    // カルーセル: Python で生成 → スライドとキャプションを GCS へ
+    const c = await generateCarousel(p);
+    const urls = [];
+    for (let i = 0; i < c.slides.length; i++) {
+      const obj = `posts/${p.date}/slide_${i + 1}.png`;
+      await uploadFile(c.slides[i], obj);
+      urls.push(await signObjectUrl(obj, { expiryMs: PREVIEW_EXPIRY_MS }));
+    }
+    await uploadFile(c.captionPath, `posts/${p.date}/caption.md`); // 公開時のキャプション用
+    previewUrl = JSON.stringify(urls); // 承認ページが画像配列として描画
+  } else {
+    // リール: schedule の topic/angle を台本ソースに（slug=公開日）
+    const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
+    await runPipeline({ text: sourceText, slug: p.date, revision });
+    // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
+    previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, { expiryMs: PREVIEW_EXPIRY_MS });
+  }
   await upsertRow(p.date, {
     status: "review",
     preview_url: previewUrl,
@@ -104,7 +116,7 @@ async function generateOne(p, revision = "") {
   const approveUrl = makeApprovalUrl(p.date);
   await sendMessage(
     buildReviewMessage({
-      post: { publish_date: p.date, theme: themeOf(p) },
+      post: { publish_date: p.date, theme: themeOf(p), type: p.type },
       previewUrl,
       approveUrl,
       titlePrefix: revision ? "🔁 修正版を再生成しました（確認おねがいします）" : undefined,
@@ -141,12 +153,8 @@ async function main() {
   }
 
   for (const p of due) {
-    if (p.type !== "reel") {
-      console.log(`  (skip) ${p.date} は ${p.type}（フィードは Phase 5 で統合予定）`);
-      continue;
-    }
     try {
-      console.log(`\n=== 生成: ${p.date}${args.revision ? "（修正反映）" : ""} ===`);
+      console.log(`\n=== 生成: ${p.date} [${p.type}]${args.revision ? "（修正反映）" : ""} ===`);
       const url = await generateOne(p, args.revision || "");
       console.log(`  ✓ ${p.date} 完了。確認リンク: ${url}`);
     } catch (e) {

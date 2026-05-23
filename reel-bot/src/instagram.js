@@ -96,6 +96,52 @@ export async function postReel(videoUrl, caption) {
   return { media_id: mediaId, creation_id: creationId, permalink };
 }
 
+/**
+ * カルーセル投稿（2〜10枚）。
+ * @param {string[]} imageUrls 公開画像URL（GCS署名URL）
+ * @param {string} caption
+ * @returns {Promise<{media_id, creation_id, child_ids, permalink}>}
+ */
+export async function postCarousel(imageUrls, caption) {
+  requireCreds();
+  const igId = env.INSTAGRAM_BUSINESS_ACCOUNT_ID;
+  if (!(imageUrls.length >= 2 && imageUrls.length <= 10)) {
+    throw new Error(`カルーセルは2〜10枚です（現在 ${imageUrls.length}枚）`);
+  }
+
+  // 1. 子コンテナ作成
+  const childIds = [];
+  for (const url of imageUrls) {
+    const child = await graph("POST", `${igId}/media`, {
+      body: { image_url: url, is_carousel_item: "true" },
+    });
+    childIds.push(child.id);
+  }
+  // 2. 子の処理待ち
+  for (const cid of childIds) await waitMediaReady(cid);
+
+  // 3. 親コンテナ作成
+  const parent = await graph("POST", `${igId}/media`, {
+    body: { media_type: "CAROUSEL", children: childIds.join(","), caption },
+  });
+  await waitMediaReady(parent.id);
+
+  // 4. 公開
+  const publish = await graph("POST", `${igId}/media_publish`, {
+    body: { creation_id: parent.id },
+  });
+  const mediaId = publish.id;
+
+  // 5. permalink
+  let permalink = "";
+  try {
+    const info = await graph("GET", mediaId, { params: { fields: "permalink" } });
+    permalink = info.permalink || "";
+  } catch { /* 取れなくても致命的でない */ }
+
+  return { media_id: mediaId, creation_id: parent.id, child_ids: childIds, permalink };
+}
+
 // ---------- CLI（単体テスト用）----------
 // node src/instagram.js <videoUrl> <slug>
 async function main() {

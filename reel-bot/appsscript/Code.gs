@@ -76,11 +76,11 @@ function handle_(e, isPost) {
   var t = HtmlService.createTemplateFromFile('Page');
   t.id = id;
   t.token = token;
+  t.type = row[col['type']] || 'reel';
   t.publishDate = row[col['publish_date']] || '';
   t.theme = row[col['theme']] || '';
   t.status = status || '';
   t.previewUrl = row[col['preview_url']] || '';
-  t.fileId = extractFileId_(row[col['preview_url']] || '');
   t.scriptUrl = ScriptApp.getService().getUrl();
   return t.evaluate()
     .setTitle('リール承認')

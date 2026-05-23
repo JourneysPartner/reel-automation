@@ -98,6 +98,12 @@ export async function downloadText(objectPath) {
   return buf.toString("utf-8");
 }
 
+/** prefix で始まるオブジェクト名一覧（名前順）。 */
+export async function listObjects(prefix) {
+  const [files] = await getStorage().bucket(env.GCS_BUCKET).getFiles({ prefix });
+  return files.map((f) => f.name).sort();
+}
+
 /** バケット内オブジェクトを削除（一時ファイルの後片付け）。失敗しても致命的でない。 */
 export async function deleteFile(destName) {
   try {

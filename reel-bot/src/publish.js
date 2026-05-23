@@ -13,8 +13,8 @@
 //   node src/publish.js --id 2026-06-05        指定1件を投稿（approved のもの）
 
 import { getAllRows, upsertRow } from "./sheet.js";
-import { signObjectUrl, downloadText } from "./gcs.js";
-import { postReel, buildCaption } from "./instagram.js";
+import { signObjectUrl, downloadText, listObjects } from "./gcs.js";
+import { postReel, postCarousel, buildCaption } from "./instagram.js";
 import {
   sendMessage,
   buildPublishedMessage,
@@ -37,12 +37,23 @@ function parseArgs(argv) {
   return a;
 }
 
-/** 1件を公開（reel）。 */
+/** 1件を公開（reel / carousel）。 */
 async function publishOne(row) {
-  const script = JSON.parse(await downloadText(`reels/${row.id}/script.json`));
-  const caption = buildCaption(script);
-  const reelUrl = await signObjectUrl(`reels/${row.id}/reel.mp4`);
-  const result = await postReel(reelUrl, caption);
+  let result;
+  if (row.type === "carousel") {
+    const caption = await downloadText(`posts/${row.id}/caption.md`);
+    const slideObjs = (await listObjects(`posts/${row.id}/slide_`))
+      .filter((n) => n.endsWith(".png"))
+      .sort((a, b) => parseInt(a.match(/slide_(\d+)/)[1], 10) - parseInt(b.match(/slide_(\d+)/)[1], 10));
+    if (slideObjs.length < 2) throw new Error(`スライドが不足: ${slideObjs.length}枚`);
+    const urls = [];
+    for (const obj of slideObjs) urls.push(await signObjectUrl(obj));
+    result = await postCarousel(urls, caption);
+  } else {
+    const script = JSON.parse(await downloadText(`reels/${row.id}/script.json`));
+    const reelUrl = await signObjectUrl(`reels/${row.id}/reel.mp4`);
+    result = await postReel(reelUrl, buildCaption(script));
+  }
   await upsertRow(row.id, {
     status: "published",
     permalink: result.permalink || "",
@@ -92,12 +103,8 @@ async function main() {
 
   // 公開
   for (const r of dueApproved) {
-    if (r.type !== "reel") {
-      console.log(`  (skip) ${r.id} は ${r.type}（フィードは Phase 5）`);
-      continue;
-    }
     try {
-      console.log(`\n=== 公開: ${r.id} ===`);
+      console.log(`\n=== 公開: ${r.id} [${r.type}] ===`);
       const result = await publishOne(r);
       console.log(`  ✓ 公開完了: ${result.permalink || result.media_id}`);
     } catch (e) {

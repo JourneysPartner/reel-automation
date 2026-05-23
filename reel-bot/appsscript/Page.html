@@ -7,6 +7,7 @@
       h2 { margin: 8px 0 4px; }
       .meta { color: #555; font-size: 14px; margin: 2px 0; }
       .preview { width: 100%; aspect-ratio: 9/16; border: 0; border-radius: 12px; background: #000; margin: 12px 0; }
+      .slide { width: 100%; border-radius: 10px; margin: 8px 0; display: block; }
       .link { display: inline-block; margin: 6px 0 16px; color: #1a73e8; }
       form { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
       button { font-size: 18px; font-weight: 700; padding: 16px; border: 0; border-radius: 12px; color: #fff; }
@@ -23,9 +24,14 @@
     <p class="meta">公開予定: <?= publishDate ?></p>
     <p class="meta">テーマ: <?= theme ?></p>
 
-    <? if (previewUrl) { ?>
-    <video class="preview" src="<?= previewUrl ?>" controls playsinline preload="metadata"></video>
-    <a class="link" href="<?= previewUrl ?>" target="_blank">▶ 別タブで開く</a>
+    <? if (type === 'carousel') { ?>
+      <? var imgs = []; try { imgs = JSON.parse(previewUrl); } catch (e) {} ?>
+      <? for (var i = 0; i < imgs.length; i++) { ?>
+      <img class="slide" src="<?= imgs[i] ?>" />
+      <? } ?>
+    <? } else if (previewUrl) { ?>
+      <video class="preview" src="<?= previewUrl ?>" controls playsinline preload="metadata"></video>
+      <a class="link" href="<?= previewUrl ?>" target="_blank">▶ 別タブで開く</a>
     <? } ?>
 
     <? if (status === 'approved' || status === 'skipped') { ?>

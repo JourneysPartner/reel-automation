@@ -32,10 +32,12 @@ export async function sendMessage(text, { roomId = env.CHATWORK_ROOM_ID } = {}) 
 export function buildReviewMessage({ post, previewUrl, approveUrl, titlePrefix }) {
   const lines = [];
   lines.push(`[info][title]${titlePrefix || "🎬 リール生成完了（確認おねがいします）"}[/title]`);
+  lines.push(`種別: ${post.type === "carousel" ? "カルーセル（フィード）" : "リール"}`);
   lines.push(`公開予定: ${post.publish_date}`);
   if (post.theme) lines.push(`テーマ: ${post.theme}`);
   lines.push("");
-  if (previewUrl) lines.push(`▶ 動画プレビュー: ${previewUrl}`);
+  // 単一URL（リール）のみ直リンク表示。カルーセルは承認ページで見る。
+  if (previewUrl && previewUrl.startsWith("http")) lines.push(`▶ プレビュー: ${previewUrl}`);
   if (approveUrl) {
     lines.push("");
     lines.push(`✅ 確認・操作はこちら: ${approveUrl}`);

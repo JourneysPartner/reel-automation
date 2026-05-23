@@ -217,6 +217,18 @@ node src/publish.js --id 2026-06-05
 
 ---
 
+## STEP 8. フィード（カルーセル）統合（任意）
+
+カルーセル投稿も**同じ生成→承認→公開フロー**に統合済み。`schedule.yaml` の `type: carousel` の投稿は、生成cronが既存Python（content_generator + image_renderer）で生成し、スライドをGCS/承認ページ/公開へ流す。
+
+- **生成**: Node の scheduler が `python -m src.content_generator --day N` と `python -m src.image_renderer --date <date>` を呼び、`output/posts/<date>/slide_*.png` を GCS（`posts/<date>/`）へ。承認ページは画像を並べて表示。
+- **公開**: 承認後、`publish.js` が GCS のスライドを署名URL化して**カルーセル投稿**（2〜10枚）。キャプションは `caption.md`。
+- **CI**: `generate.yml` / `regenerate.yml` に Python + Playwright のセットアップを追加済み（`pip install -r requirements.txt` + `playwright install chromium`）。
+- **ローカルテスト**: `node src/carousel.js 2026-06-07 7 --reuse`（既存スライドで確認）。
+- **制限**: カルーセルの「差し戻し」はコメントを内容に反映せず再生成のみ（リールはコメント反映あり）。
+
+---
+
 ## ローカル実行コマンド早見表
 
 ```

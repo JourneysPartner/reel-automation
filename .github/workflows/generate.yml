@@ -36,6 +36,15 @@ jobs:
         working-directory: reel-bot
         run: npm ci
 
+      # カルーセル（フィード）生成用の Python + Playwright
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python deps
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
       - name: Wait for VOICEVOX engine
         run: |
           for i in $(seq 1 60); do
