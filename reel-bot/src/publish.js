@@ -25,6 +25,14 @@ function todayJst() {
   const jst = new Date(Date.now() + 9 * 3600 * 1000);
   return jst.toISOString().slice(0, 10);
 }
+function addDays(dateStr, n) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+// cron 遅延で JST 日付が変わっても拾えるよう、過去 N 日まで遡って公開対象とする
+const LATE_PUBLISH_WINDOW_DAYS = 3;
 
 function parseArgs(argv) {
   const a = {};
@@ -75,14 +83,25 @@ async function main() {
       console.log(`(注意) ${args.id} は approved ではない/存在しません`);
     }
   } else {
-    dueApproved = rows.filter((r) => r.publish_date === today && r.status === "approved");
+    // cron 遅延で日付が変わってしまっても拾えるよう、過去 N 日まで遡る
+    const earliest = addDays(today, -LATE_PUBLISH_WINDOW_DAYS);
+    dueApproved = rows.filter(
+      (r) =>
+        r.status === "approved" &&
+        r.publish_date &&
+        r.publish_date <= today &&
+        r.publish_date >= earliest
+    );
   }
   const dueUnreviewed = rows.filter(
     (r) => r.publish_date === today && r.status === "review"
   );
 
   console.log(`today=${today} / 公開対象(approved)=${dueApproved.length}件 / 未承認(review)=${dueUnreviewed.length}件`);
-  for (const r of dueApproved) console.log(`  公開: ${r.id} [${r.type}] ${r.theme}`);
+  for (const r of dueApproved) {
+    const lateDays = (new Date(`${today}T00:00:00Z`) - new Date(`${r.publish_date}T00:00:00Z`)) / 86400000;
+    console.log(`  公開: ${r.id} [${r.type}]${lateDays > 0 ? ` (${lateDays}日遅れ)` : ""} ${r.theme}`);
+  }
   for (const r of dueUnreviewed) console.log(`  未承認(催促): ${r.id}`);
 
   if (args.dryRun) {
