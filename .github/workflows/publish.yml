@@ -4,7 +4,7 @@ name: reel-publish
 # 動画・台本は生成時に GCS へ保存済み（reels/<id>/）。ここでは署名URLを取り直して投稿する。
 on:
   schedule:
-    - cron: "0 10 * * *" # 毎日 19:00 JST（10:00 UTC）
+    - cron: "37 10 * * *" # 毎日 19:37 JST（10:37 UTC）。:00 帯の混雑を回避し遅延を抑える
   workflow_dispatch:
     inputs:
       date:

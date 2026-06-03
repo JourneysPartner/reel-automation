@@ -4,7 +4,7 @@ name: monthly-plan
 # config/schedule.yaml に追記してコミット＆push。以降は generate/publish cron が拾う。
 on:
   schedule:
-    - cron: "0 0 20 * *" # 毎月20日 09:00 JST（00:00 UTC）
+    - cron: "37 0 20 * *" # 毎月20日 09:37 JST（00:37 UTC）。:00 帯の混雑を回避
   workflow_dispatch:
     inputs:
       month:

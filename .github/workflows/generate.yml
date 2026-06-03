@@ -4,7 +4,7 @@ name: reel-generate
 # 投稿はしない（確認後、別途公開フローで行う）。
 on:
   schedule:
-    - cron: "0 23 * * *" # 毎日 08:00 JST（23:00 UTC）
+    - cron: "37 23 * * *" # 毎日 08:37 JST（23:37 UTC）。:00 帯の混雑を回避
   workflow_dispatch:
     inputs:
       date:
