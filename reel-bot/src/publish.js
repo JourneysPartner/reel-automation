@@ -76,18 +76,20 @@ async function main() {
   const today = args.date || todayJst();
   const rows = await getAllRows();
 
+  // approved（初回） / failed（前回エラーの再試行）の両方を対象に
+  const RETRY_STATUSES = ["approved", "failed"];
   let dueApproved;
   if (args.id) {
-    dueApproved = rows.filter((r) => r.id === args.id && r.status === "approved");
+    dueApproved = rows.filter((r) => r.id === args.id && RETRY_STATUSES.includes(r.status));
     if (dueApproved.length === 0) {
-      console.log(`(注意) ${args.id} は approved ではない/存在しません`);
+      console.log(`(注意) ${args.id} は approved/failed ではない/存在しません`);
     }
   } else {
     // cron 遅延で日付が変わってしまっても拾えるよう、過去 N 日まで遡る
     const earliest = addDays(today, -LATE_PUBLISH_WINDOW_DAYS);
     dueApproved = rows.filter(
       (r) =>
-        r.status === "approved" &&
+        RETRY_STATUSES.includes(r.status) &&
         r.publish_date &&
         r.publish_date <= today &&
         r.publish_date >= earliest
