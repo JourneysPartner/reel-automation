@@ -89,3 +89,28 @@ posts:
     target_persona: ec_seller
     topic: "夏の繁忙期前にやっておく資金繰り設計"
     angle: "プライムデー・お盆セール前の現金温存術"
+
+  - day: 20
+    date: "2026-06-20"
+    type: reel
+    target_persona: influencer
+    topic: "PR案件の源泉徴収、引かれた？引かれてない？"
+    angle: "企業案件の報酬明細の読み方と、自分で納税が必要なケースを1分で整理"
+  - day: 23
+    date: "2026-06-23"
+    type: reel
+    target_persona: smb_owner
+    topic: "社長が決算書の3行を読めれば会社は変わる"
+    angle: "顧問任せを卒業する第一歩として、売上総利益・営業利益・純利益の差を経営目線で解説"
+  - day: 26
+    date: "2026-06-26"
+    type: reel
+    target_persona: wealth_holder
+    topic: "暗号資産の含み益、相続が発生したらどう動く"
+    angle: "死亡時点の時価評価と相続人が引き継いだ後の取得価額リセット問題を具体例で警告"
+  - day: 29
+    date: "2026-06-29"
+    type: reel
+    target_persona: freelancer
+    topic: "6月の住民税決定通知書、この数字の正体"
+    angle: "毎年6月に届く通知書の見方と、昨年の申告内容が反映されているか確認すべきポイントを解説"
