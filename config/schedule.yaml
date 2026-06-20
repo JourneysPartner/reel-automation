@@ -114,3 +114,184 @@ posts:
     target_persona: freelancer
     topic: "6月の住民税決定通知書、この数字の正体"
     angle: "毎年6月に届く通知書の見方と、昨年の申告内容が反映されているか確認すべきポイントを解説"
+
+  - day: 1
+    date: "2026-07-01"
+    type: reel
+    target_persona: freelancer
+    topic: "自宅兼事務所の光熱費、夏の按分率はこう決める"
+    angle: "エアコン使用が増える7月、家事按分の根拠を記録する具体的な方法を60秒で解説"
+  - day: 2
+    date: "2026-07-02"
+    type: carousel
+    target_persona: ec_seller
+    topic: "海外仕入れの関税と消費税、仕訳の正しい分け方"
+    angle: "輸入仕入れで混同しやすい関税・輸入消費税・送料の勘定科目をスライドで整理"
+  - day: 3
+    date: "2026-07-03"
+    type: reel
+    target_persona: influencer
+    topic: "夏フェス・イベント協賛PR案件の経費と収益の境界線"
+    angle: "物品提供・招待チケット・現金報酬が混在するPR案件の課税判定を1分で整理"
+  - day: 4
+    date: "2026-07-04"
+    type: reel
+    target_persona: smb_owner
+    topic: "第1四半期が終わった今、試算表で確認すべき3つの数字"
+    angle: "7月は上半期の折り返し。営業利益・借入残高・売掛金回転日数の読み方を伝える"
+  - day: 5
+    date: "2026-07-05"
+    type: carousel
+    target_persona: wealth_holder
+    topic: "夏に動く不動産売却、譲渡所得税の試算を先にやる理由"
+    angle: "売却益が出る前に税額を試算しないと手取りが激変する。計算フローをスライドで図解"
+  - day: 6
+    date: "2026-07-06"
+    type: reel
+    target_persona: freelancer
+    topic: "税務署からの『お尋ね』が届いたときの初動3ステップ"
+    angle: "無視・慌ての返答はNG。封筒の種類別に正しい対応手順を60秒でわかりやすく説明"
+  - day: 7
+    date: "2026-07-07"
+    type: reel
+    target_persona: ec_seller
+    topic: "Amazon・楽天の売上データ、月次で突合すべき理由"
+    angle: "プラットフォーム手数料・返品・ポイント原資の取りこぼしが積み重なる前に月次チェックを習慣化"
+  - day: 8
+    date: "2026-07-08"
+    type: carousel
+    target_persona: influencer
+    topic: "グッズ・デジタルコンテンツ・投げ銭、収益源別の消費税区分ガイド"
+    angle: "課税・非課税・不課税が混在するクリエイター収益を収益源ごとに一覧スライドで整理"
+  - day: 9
+    date: "2026-07-09"
+    type: reel
+    target_persona: smb_owner
+    topic: "銀行融資の審査で税理士が使う『財務3表の見せ方』"
+    angle: "決算書の数字は同じでも見せ順と補足資料で評価が変わる。社長が知るべき整理術を解説"
+  - day: 10
+    date: "2026-07-10"
+    type: reel
+    target_persona: wealth_holder
+    topic: "海外口座・外貨預金の残高、相続発生時の評価額の決まり方"
+    angle: "為替レートの基準日と評価方法を知らないと申告額がブレる。TTBとTTMの使い分けを解説"
+  - day: 11
+    date: "2026-07-11"
+    type: carousel
+    target_persona: freelancer
+    topic: "フリーランスが迷う交際費・会議費・福利厚生費の振り分け基準"
+    angle: "ひとり事業主に福利厚生費は使えるのか。金額・相手・目的で判断する振り分けフローをスライドで提示"
+  - day: 12
+    date: "2026-07-12"
+    type: reel
+    target_persona: ec_seller
+    topic: "夏セール後の在庫急変動、棚卸資産の計上ミスを防ぐ手順"
+    angle: "セール値引き・返品・廃棄が重なる7月末の棚卸を正確に処理するチェックリストを解説"
+  - day: 13
+    date: "2026-07-13"
+    type: reel
+    target_persona: influencer
+    topic: "海外ブランドとのコラボ収益、消費税の輸出免税が使えるケース"
+    angle: "海外向けデジタル商品・ライセンス料に輸出免税が適用できる条件を具体例で1分解説"
+  - day: 14
+    date: "2026-07-14"
+    type: carousel
+    target_persona: smb_owner
+    topic: "役員報酬を期中に変えたくなったとき、できる例外3パターン"
+    angle: "業績悪化・役員交代・コロナ特例の延長。定期同額給与の例外規定を社長目線でわかりやすく整理"
+  - day: 15
+    date: "2026-07-15"
+    type: reel
+    target_persona: wealth_holder
+    topic: "暗号資産を法定通貨に換えずに相続が起きたら何が起こるか"
+    angle: "含み益への課税タイミング・秘密鍵の引き継ぎ問題・評価額算定の3点を60秒でリアルに解説"
+  - day: 16
+    date: "2026-07-16"
+    type: reel
+    target_persona: freelancer
+    topic: "副業フリーランスが本業給与と合算で損する住民税の落とし穴"
+    angle: "6月の住民税決定通知後に気づく副業バレリスク。普通徴収への切り替え手順を解説"
+  - day: 17
+    date: "2026-07-17"
+    type: carousel
+    target_persona: ec_seller
+    topic: "越境EC・海外発送の消費税ゼロ円申告、輸出証明の保存ルール"
+    angle: "輸出免税を適用するために必要な書類と保存期間をスライドで一覧化。税務調査で焦らないための準備"
+  - day: 18
+    date: "2026-07-18"
+    type: reel
+    target_persona: influencer
+    topic: "YouTube収益の源泉徴収票が届いたらやること"
+    angle: "Googleから届く支払調書の見方・確定申告への反映・二重課税回避の手順を1分でガイド"
+  - day: 19
+    date: "2026-07-19"
+    type: reel
+    target_persona: smb_owner
+    topic: "社長貸付金が決算書にある会社の相続リスクと解消策"
+    angle: "役員借入金・貸付金が相続財産になる仕組みと、生前に解消できる4つの手段を図解で解説"
+  - day: 20
+    date: "2026-07-20"
+    type: carousel
+    target_persona: wealth_holder
+    topic: "教育資金贈与信託と結婚・子育て資金贈与、2026年の使い方"
+    angle: "制度改正後の非課税枠・使途・残額課税のルールを比較スライドで整理。使える人の条件も明記"
+  - day: 21
+    date: "2026-07-21"
+    type: reel
+    target_persona: freelancer
+    topic: "フリーランスの『仕事用クレカ』と『個人クレカ』混在を今すぐ直す"
+    angle: "カード明細が混在したまま経費計上するリスクと、口座・カードを分離する最短手順を60秒で解説"
+  - day: 22
+    date: "2026-07-22"
+    type: reel
+    target_persona: ec_seller
+    topic: "ネットショップの送料無料キャンペーン、消費税の計算基準はどこ"
+    angle: "送料を売主負担にした場合の課税標準の考え方を具体的な数値例で1分解説"
+  - day: 23
+    date: "2026-07-23"
+    type: carousel
+    target_persona: influencer
+    topic: "インフルエンサーが法人化するとき収益の移し方で失敗するパターン"
+    angle: "個人から法人への売上移転タイミング・著作権譲渡・業務委託契約の注意点をスライドで整理"
+  - day: 24
+    date: "2026-07-24"
+    type: reel
+    target_persona: smb_owner
+    topic: "M&A・株式譲渡を検討し始めた社長が最初に整理すべき3つの数字"
+    angle: "純資産・のれん・株価評価の基礎を社長目線で解説。交渉前に知っておくべき前提知識を伝える"
+  - day: 25
+    date: "2026-07-25"
+    type: reel
+    target_persona: wealth_holder
+    topic: "金地金・プラチナ積立の相続評価と申告漏れリスク"
+    angle: "現物貴金属は名義と保管場所が分散しやすい。評価方法・調査で見つかる経緯・申告手順を解説"
+  - day: 26
+    date: "2026-07-26"
+    type: carousel
+    target_persona: freelancer
+    topic: "フリーランスの小規模企業共済、掛金変更のベストタイミングと節税幅"
+    angle: "収入が増減しやすい個人事業主が掛金を見直すべき時期と、所得控除への影響をスライドで試算"
+  - day: 27
+    date: "2026-07-27"
+    type: reel
+    target_persona: ec_seller
+    topic: "仕入れた商品が不良品で返品、消費税の修正仕訳はこうなる"
+    angle: "返品・値引き・クレジットノートが発生したときの適格返還請求書と仕訳処理を1分で解説"
+  - day: 28
+    date: "2026-07-28"
+    type: reel
+    target_persona: influencer
+    topic: "ライブ配信の投げ銭・スパチャ、受け取り時と確定申告時の課税の違い"
+    angle: "プラットフォームが換金処理するタイミングと収入計上時期のズレを具体例で60秒解説"
+  - day: 29
+    date: "2026-07-29"
+    type: carousel
+    target_persona: smb_owner
+    topic: "従業員持株会の導入で事業承継を有利に進める仕組み"
+    angle: "株価分散・後継者育成・従業員モチベーションを同時に解決できる持株会の設計ポイントを図解"
+  - day: 30
+    date: "2026-07-30"
+    type: reel
+    target_persona: wealth_holder
+    topic: "夏の資産組み換え前に確認、含み損を使った節税の限界と注意点"
+    angle: "株・不動産の含み損を年内に実現させる損益通算の活用法と、やりすぎで否認されるラインを解説"
