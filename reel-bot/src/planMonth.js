@@ -27,8 +27,19 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--dry-run") a.dryRun = true;
     else if (argv[i] === "--month") a.month = argv[++i];
+    else if (argv[i] === "--add-reels") a.addReels = parseInt(argv[++i], 10);
   }
   return a;
+}
+
+function todayJst() {
+  const d = new Date(Date.now() + 9 * 3600 * 1000);
+  return d.toISOString().slice(0, 10);
+}
+function addDaysStr(dateStr, n) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
 }
 
 function nextMonth() {
@@ -64,6 +75,41 @@ function buildSkeleton(monthStr, personaIds) {
   }
   // カルーセル数を目標に寄せる微調整は省略（i%3で約1/3＝目標近傍）
   return slots;
+}
+
+/** 既存月にリールだけを N 本追加する（空き日かつ today+leadDays 以降に均等配置）。 */
+function buildAddReelsSkeleton(monthStr, count, existingMonthPosts, personaIds, leadDays = 3) {
+  const [y, m] = monthStr.split("-").map(Number);
+  const N = daysInMonth(y, m);
+  const earliest = addDaysStr(todayJst(), leadDays);
+  const used = new Set(existingMonthPosts.map((p) => String(p.date)));
+
+  const free = [];
+  for (let day = 1; day <= N; day++) {
+    const date = `${monthStr}-${String(day).padStart(2, "0")}`;
+    if (date < earliest) continue;
+    if (used.has(date)) continue;
+    free.push({ day, date });
+  }
+  if (free.length < count) {
+    throw new Error(`空き日が ${free.length}日しかなく、要求 ${count}本 を満たせません（earliest=${earliest}）`);
+  }
+  // 均等にN本を選ぶ
+  const picks = [];
+  for (let i = 0; i < count; i++) picks.push(free[Math.floor((i * free.length) / count)]);
+
+  // 既存月内のペルソナと連続しないよう、ローテ開始位置を既存末尾からずらす
+  const lastPersona = existingMonthPosts[existingMonthPosts.length - 1]?.target_persona;
+  let startIdx = lastPersona ? (personaIds.indexOf(lastPersona) + 1) % personaIds.length : 0;
+  if (startIdx < 0) startIdx = 0;
+
+  return picks.map((p, i) => ({
+    no: i + 1,
+    day: p.day,
+    date: p.date,
+    type: "reel",
+    target_persona: personaIds[(startIdx + i) % personaIds.length],
+  }));
 }
 
 async function planTopics(monthStr, slots, personas, pastTopics) {
@@ -133,18 +179,29 @@ async function main() {
 
   const schedule = yaml.load(fs.readFileSync(SCHEDULE_PATH, "utf-8")) || {};
   const existing = schedule.posts || [];
-  if (existing.some((p) => String(p.date).startsWith(monthStr))) {
-    console.log(`${monthStr} は既に schedule.yaml に存在します。中止。`);
-    return;
-  }
   const pastTopics = existing.map((p) => p.topic).filter(Boolean);
   const personas = (yaml.load(fs.readFileSync(PERSONAS_PATH, "utf-8")) || {}).personas || [];
   const personaIds = personas.map((p) => p.id);
 
-  const slots = buildSkeleton(monthStr, personaIds);
-  const reels = slots.filter((s) => s.type === "reel").length;
-  const carousels = slots.filter((s) => s.type === "carousel").length;
-  console.log(`対象月 ${monthStr}: リール${reels}本 / カルーセル${carousels}本 を立案中...`);
+  // --- スロット組み立て: 通常モード or 追加リールモード ---
+  let slots;
+  let title;
+  if (args.addReels) {
+    const existingMonth = existing.filter((p) => String(p.date).startsWith(monthStr));
+    slots = buildAddReelsSkeleton(monthStr, args.addReels, existingMonth, personaIds);
+    title = `${monthStr} にリール${slots.length}本を追加立案`;
+    console.log(`${title}（空き日に均等配置: ${slots.map((s) => s.date).join(", ")}）`);
+  } else {
+    if (existing.some((p) => String(p.date).startsWith(monthStr))) {
+      console.log(`${monthStr} は既に schedule.yaml に存在します。中止。`);
+      return;
+    }
+    slots = buildSkeleton(monthStr, personaIds);
+    const reels = slots.filter((s) => s.type === "reel").length;
+    const carousels = slots.filter((s) => s.type === "carousel").length;
+    title = `${monthStr} の投稿カレンダー（リール${reels}本/カルーセル${carousels}本）`;
+    console.log(`対象月 ${monthStr}: リール${reels}本 / カルーセル${carousels}本 を立案中...`);
+  }
 
   const topics = await planTopics(monthStr, slots, personas, pastTopics);
   const byNo = new Map(topics.map((t) => [t.no, t]));
@@ -167,9 +224,9 @@ async function main() {
 
   try {
     const lines = [
-      `[info][title]🗓 ${monthStr} の投稿カレンダーを自動立案しました[/title]`,
-      `リール${reels}本 / カルーセル${carousels}本（計${entries.length}本）`,
-      "公開3日前に自動生成され、確認依頼が届きます。",
+      `[info][title]🗓 ${title}[/title]`,
+      `${entries.length}本を立案しました。`,
+      "各投稿は公開3日前に自動生成され、確認依頼が届きます。",
       "内容を変えたい場合は config/schedule.yaml を編集してください。",
       "[/info]",
     ];
