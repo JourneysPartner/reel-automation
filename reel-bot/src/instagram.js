@@ -48,12 +48,14 @@ async function waitMediaReady(creationId, { timeoutSec = REEL_POLL_TIMEOUT_SEC, 
   throw new Error(`メディア処理タイムアウト (${timeoutSec}s, creation_id=${creationId})`);
 }
 
-/** キャプションを組み立て（本文 + クレジット + ハッシュタグ）。 */
-export function buildCaption(script) {
-  const parts = [];
-  parts.push(script.full_script || script.body || "");
-  parts.push("");
-  parts.push(`🎙 ${BRAND.voicevoxCredit()}`);
+/**
+ * キャプションを組み立て（本文 + クレジット + ハッシュタグ）。
+ * @param {object} script   script.json の内容（hashtags を流用）
+ * @param {string|null} body  caption.md があればこちらを本文に使う。無ければ script.full_script。
+ */
+export function buildCaption(script, body = null) {
+  const main = (body && body.trim()) || script.full_script || script.body || "";
+  const parts = [main, "", `🎙 ${BRAND.voicevoxCredit()}`];
   if (Array.isArray(script.hashtags) && script.hashtags.length) {
     parts.push("");
     parts.push(script.hashtags.join(" "));

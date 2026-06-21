@@ -21,7 +21,13 @@
 import fs from "fs";
 import path from "path";
 import { OUTPUT_REELS, CHARACTER_DIR, env } from "./config.js";
-import { loadSource, generateScript, saveScript } from "./scriptGenerator.js";
+import {
+  loadSource,
+  generateScript,
+  saveScript,
+  generateReelCaption,
+  saveCaption,
+} from "./scriptGenerator.js";
 import { checkEngine, findSpeakerId, synthesizeFull } from "./voicevoxClient.js";
 import { uploadFile, downloadText } from "./gcs.js";
 import { renderReelRemotion } from "./remotionRender.js";
@@ -61,6 +67,7 @@ export async function runPipeline(args = {}) {
   const scriptPath = path.join(dir, "script.json");
   const voicePath = path.join(dir, "voice.wav");
   const timingsPath = path.join(dir, "timings.json");
+  const captionPath = path.join(dir, "caption.md");
 
   // ===== ① 台本 =====
   let script;
@@ -92,6 +99,22 @@ export async function runPipeline(args = {}) {
     saveScript(script, slug);
   }
   console.log(`  hook: ${script.hook}`);
+
+  // ===== ①' 投稿キャプション（カルーセル風の解説文）=====
+  // 台本（口語短文）とは別に、投稿のキャプション本文を生成して caption.md に保存。
+  // reuse: 既存があれば再利用。修正再生成時は新規。
+  if (args.reuse && !args.revision && fs.existsSync(captionPath)) {
+    console.log("=== ①' キャプション（既存 caption.md を再利用）===");
+  } else {
+    console.log("=== ①' 投稿キャプション生成（カルーセル風 解説文）===");
+    try {
+      const caption = await generateReelCaption(script, args.post || null);
+      saveCaption(caption, slug);
+      console.log(`  ✓ caption.md (${caption.length}字)`);
+    } catch (e) {
+      console.log(`  (warn) キャプション生成失敗（台本本文を投稿に流用）: ${e.message}`);
+    }
+  }
 
   if (args.dryRun) {
     console.log("\n--dry-run: 音声以降はスキップ");
@@ -146,13 +169,17 @@ export async function runPipeline(args = {}) {
   const reelUrl = await uploadFile(reelPath, `reels/${slug}/reel.mp4`);
   await uploadFile(scriptPath, `reels/${slug}/script.json`); // 公開cronがキャプション生成に使う
   if (fs.existsSync(timingsPath)) await uploadFile(timingsPath, `reels/${slug}/timings.json`);
+  if (fs.existsSync(captionPath)) await uploadFile(captionPath, `reels/${slug}/caption.md`); // 公開時に本文として使用
   console.log(`  ✓ reel URL 取得`);
 
   // ===== ⑥ Instagram 公開 =====
   let postResult = null;
   if (args.post) {
     console.log("\n=== ⑥ Instagram REELS 投稿 ===");
-    const caption = buildCaption(script);
+    const captionOverride = fs.existsSync(captionPath)
+      ? fs.readFileSync(captionPath, "utf-8")
+      : null;
+    const caption = buildCaption(script, captionOverride);
     postResult = await postReel(reelUrl, caption);
     console.log(`  ✓ 公開: ${postResult.permalink || postResult.media_id}`);
   }

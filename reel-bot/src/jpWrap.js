@@ -75,6 +75,10 @@ function isCloseBracket(token) {
 function isNoun(token) {
   return !!token && token.pos === "名詞";
 }
+// 接頭詞（粗利の「粗」・新車の「新」など）は次の名詞に右付けして1語のまま改行させない
+function isPrefix(token) {
+  return !!token && token.pos === "接頭詞";
+}
 
 /**
  * トークン列を「アトム（行頭に来てよいかたまり）」へ統合。
@@ -120,7 +124,7 @@ export function buildAtoms(tokens, cpl) {
     units.push({
       surface: t.surface_form,
       attachLeft: attachesLeft(t) || isCloseBracket(t) || nounAttach,
-      attachRight: false,
+      attachRight: isPrefix(t), // 接頭詞は次の語に付ける（粗+利 を「粗利」のまま）
     });
     prevTok = t;
     i++;

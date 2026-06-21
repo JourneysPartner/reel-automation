@@ -103,7 +103,7 @@ async function generateOne(p, revision = "") {
   } else {
     // リール: schedule の topic/angle を台本ソースに（slug=公開日）
     const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
-    await runPipeline({ text: sourceText, slug: p.date, revision });
+    await runPipeline({ text: sourceText, slug: p.date, revision, post: p });
     // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
     previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, { expiryMs: PREVIEW_EXPIRY_MS });
   }

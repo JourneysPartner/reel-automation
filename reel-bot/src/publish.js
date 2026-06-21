@@ -60,7 +60,13 @@ async function publishOne(row) {
   } else {
     const script = JSON.parse(await downloadText(`reels/${row.id}/script.json`));
     const reelUrl = await signObjectUrl(`reels/${row.id}/reel.mp4`);
-    result = await postReel(reelUrl, buildCaption(script));
+    // caption.md が GCS にあればそれを本文に使う（カルーセル風の解説文）。
+    // 無ければ従来通り script.full_script を流用。
+    let captionBody = null;
+    try {
+      captionBody = await downloadText(`reels/${row.id}/caption.md`);
+    } catch { /* 無ければ null のまま */ }
+    result = await postReel(reelUrl, buildCaption(script, captionBody));
   }
   await upsertRow(row.id, {
     status: "published",

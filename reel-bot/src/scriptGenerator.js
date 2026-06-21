@@ -175,6 +175,90 @@ export function saveScript(script, slug) {
   return out;
 }
 
+// ---------- リール用キャプション（カルーセル風の解説文）----------
+// 動画は口語短文だが、投稿キャプションは「動画内容を詳しく書いた解説文」にする。
+// 文体はカルーセル投稿に合わせ（です・ます調・絵文字見出し・短文連打・1200〜1800字）。
+
+export const REEL_CAPTION_SYSTEM = `あなたは税理士事務所「守護神税理士」のSNS編集者です。
+Instagramリール動画の「キャプション本文（投稿文）」を執筆します。
+これはリール動画の音声書き起こしではなく、リール動画の内容を読者向けに詳しく解説した記事文です。
+
+【文体】
+- 「です・ます」調を基本とする（リール動画本編の口語「〜だよ」とは別物）
+- 一文は短く（20〜30字目安）、改行を積極的に入れる
+- 絵文字を見出しの先頭に5〜8個（🚨💡🔥👀⚠️📩👇 などを意味に応じて）
+- 見出し → 段落 → 見出し → 段落のリズム
+- セリフ調・疑問投げかけ・「実は」「やばくない？」などの引きは混ぜてOK
+
+【構成（カルーセル投稿に準拠）】
+1. フック（疑問文 or 衝撃の一言）
+2. 共感セリフ or 警告
+3. なぜ重要か（背景・誤解しがちな点）
+4. 💡 よくある誤解 / 🔥 見落としがちなポイント など見出しブロック2〜3本
+5. 👀 今すぐやっておくこと（リスト 2〜3項目）
+6. ⚠️ 注意しておきたいこと
+7. 「一人だと大変」→ 税理士相談のすすめ
+8. 👇 プロフィールのLINEから（CTA）
+
+【厳守】
+- 1200〜1800字（改行込み、ハッシュタグ・クレジット除く）
+- 条文番号は書かない（「〜法第◯条」NG）
+- 断定の薬機/医療誇大表現は禁止
+- 同じ表現の繰り返しを避け、各見出しに別角度の内容を入れる
+- 出力は本文テキストのみ。前後の説明・コードフェンス・JSON 等は禁止。`;
+
+const REEL_CAPTION_USER = (script, post) => `次のリール動画の「投稿キャプション本文」を、上記ルールに従って書いてください。
+
+【動画テーマ】
+${post?.topic || script.title || ""}
+
+【動画の切り口】
+${post?.angle || ""}
+
+【ターゲットペルソナ（参考）】
+${post?.target_persona || ""}
+
+【リール動画 本編の台本（口語。これを敷衍した解説文を作る。逐語コピーは禁止）】
+---
+${script.full_script || ""}
+---
+
+上記の動画内容を、読者がコメント欄やキャプション欄で読んで満足できる「詳しい解説文」に書き直してください。
+動画の音声をそのまま文字起こししたものではなく、動画では言い切れなかった補足・背景・チェックリストを含めてください。`;
+
+/**
+ * リール用キャプション本文（カルーセル風）を生成。
+ * @param {object} script script.json の内容
+ * @param {object} post   schedule.yaml のエントリ（topic/angle/target_persona）
+ * @returns {Promise<string>} caption.md に保存する本文
+ */
+export async function generateReelCaption(script, post, { model = MODEL } = {}) {
+  if (!env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY が未設定です");
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+
+  const resp = await client.messages.create({
+    model,
+    max_tokens: 3000,
+    temperature: 0.7,
+    system: [{ type: "text", text: REEL_CAPTION_SYSTEM, cache_control: { type: "ephemeral" } }],
+    messages: [{ role: "user", content: REEL_CAPTION_USER(script, post) }],
+  });
+  const text = resp.content
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+  return text;
+}
+
+export function saveCaption(captionText, slug) {
+  const dir = path.join(OUTPUT_REELS, slug);
+  fs.mkdirSync(dir, { recursive: true });
+  const out = path.join(dir, "caption.md");
+  fs.writeFileSync(out, captionText, "utf-8");
+  return out;
+}
+
 // ---------- CLI ----------
 function parseArgs(argv) {
   const args = {};
