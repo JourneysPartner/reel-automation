@@ -21,8 +21,10 @@ function hookFontVmin(wrappedHook) {
 const FPS = 30;
 // 字幕1行の最大「表示幅」（全角=1.0/半角=0.5）。白カード(7vmin)に収まる実効値。
 const SUBTITLE_CPL = 12.5;
-// フック1行の最大表示幅（8.2vmin・幅92%）。フックも形態素改行する。
-const HOOK_CPL = 11;
+// フック1行の最大表示幅。字幕と揃え、文節境界を自然に取れる幅を確保する
+// （11だと「持ったまま/亡くなったら、…」のような孤立短行が出やすかったため 12.5 に統一）。
+// フォントは行の最大幅から自動算出されるため、行が長くなった分だけ字が小さくなる。
+const HOOK_CPL = 12.5;
 
 let _serveUrl = null;
 async function getServeUrl() {
