@@ -108,7 +108,7 @@ export async function runPipeline(args = {}) {
   } else {
     console.log("=== ①' 投稿キャプション生成（カルーセル風 解説文）===");
     try {
-      const caption = await generateReelCaption(script, args.post || null);
+      const caption = await generateReelCaption(script, args.postInfo || null);
       saveCaption(caption, slug);
       console.log(`  ✓ caption.md (${caption.length}字)`);
     } catch (e) {
