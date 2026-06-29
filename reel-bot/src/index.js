@@ -30,7 +30,7 @@ import {
 } from "./scriptGenerator.js";
 import { checkEngine, findSpeakerId, synthesizeFull } from "./voicevoxClient.js";
 import { uploadFile, downloadText } from "./gcs.js";
-import { renderReelRemotion } from "./remotionRender.js";
+import { renderReelRemotion, renderReelCover } from "./remotionRender.js";
 import { postReel, buildCaption } from "./instagram.js";
 import { archiveReel } from "./googleDrive.js";
 
@@ -68,6 +68,7 @@ export async function runPipeline(args = {}) {
   const voicePath = path.join(dir, "voice.wav");
   const timingsPath = path.join(dir, "timings.json");
   const captionPath = path.join(dir, "caption.md");
+  const coverPath = path.join(dir, "cover.png");
 
   // ===== ① 台本 =====
   let script;
@@ -164,12 +165,27 @@ export async function runPipeline(args = {}) {
   console.log(`  字幕 ${r.subtitleCount} 文 / duration ${r.totalDurationSec.toFixed(1)}s / キャラ ${characterScale}倍`);
   console.log(`  ✓ レンダリング: ${reelPath}`);
 
+  // ===== ④' カバー画像（プロフィールグリッド・Reelsタブ用サムネ）=====
+  console.log("\n=== ④' カバー画像生成 (Remotion 静止画) ===");
+  try {
+    await renderReelCover({
+      script,
+      characterUrl,
+      characterScale,
+      destPath: coverPath,
+    });
+    console.log(`  ✓ カバー: ${coverPath}`);
+  } catch (e) {
+    console.log(`  (warn) カバー画像生成失敗（投稿時は動画から自動生成される）: ${e.message}`);
+  }
+
   // ===== ⑤ GCS（mp4 + 後で公開時に使う script.json）=====
-  console.log("\n=== ⑤ GCS アップロード（mp4）===");
+  console.log("\n=== ⑤ GCS アップロード（mp4 + cover）===");
   const reelUrl = await uploadFile(reelPath, `reels/${slug}/reel.mp4`);
   await uploadFile(scriptPath, `reels/${slug}/script.json`); // 公開cronがキャプション生成に使う
   if (fs.existsSync(timingsPath)) await uploadFile(timingsPath, `reels/${slug}/timings.json`);
   if (fs.existsSync(captionPath)) await uploadFile(captionPath, `reels/${slug}/caption.md`); // 公開時に本文として使用
+  if (fs.existsSync(coverPath)) await uploadFile(coverPath, `reels/${slug}/cover.png`); // 公開時に cover_url として使用
   console.log(`  ✓ reel URL 取得`);
 
   // ===== ⑥ Instagram 公開 =====
@@ -180,7 +196,17 @@ export async function runPipeline(args = {}) {
       ? fs.readFileSync(captionPath, "utf-8")
       : null;
     const caption = buildCaption(script, captionOverride);
-    postResult = await postReel(reelUrl, caption);
+    // ローカルにカバーがあれば、GCSの公開URLを取り直して cover_url に渡す
+    let coverUrl = null;
+    if (fs.existsSync(coverPath)) {
+      try {
+        const { signObjectUrl } = await import("./gcs.js");
+        coverUrl = await signObjectUrl(`reels/${slug}/cover.png`);
+      } catch (e) {
+        console.log(`  (warn) cover URL 取得失敗、cover_url なしで投稿: ${e.message}`);
+      }
+    }
+    postResult = await postReel(reelUrl, caption, coverUrl);
     console.log(`  ✓ 公開: ${postResult.permalink || postResult.media_id}`);
   }
 

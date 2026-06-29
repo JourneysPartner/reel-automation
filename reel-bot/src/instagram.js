@@ -67,16 +67,18 @@ export function buildCaption(script, body = null) {
  * リールを投稿する。
  * @param {string} videoUrl GCS の公開URL（mp4）
  * @param {string} caption
+ * @param {string|null} coverUrl プロフィールグリッド・Reelsタブで表示するカバー画像のURL
+ *                               null なら Instagram 側が動画から自動抽出する（従来挙動）
  * @returns {Promise<{media_id, creation_id, permalink}>}
  */
-export async function postReel(videoUrl, caption) {
+export async function postReel(videoUrl, caption, coverUrl = null) {
   requireCreds();
   const igId = env.INSTAGRAM_BUSINESS_ACCOUNT_ID;
 
   // 1. コンテナ作成
-  const container = await graph("POST", `${igId}/media`, {
-    body: { media_type: "REELS", video_url: videoUrl, caption },
-  });
+  const body = { media_type: "REELS", video_url: videoUrl, caption };
+  if (coverUrl) body.cover_url = coverUrl;
+  const container = await graph("POST", `${igId}/media`, { body });
   const creationId = container.id;
 
   // 2. 処理完了待ち

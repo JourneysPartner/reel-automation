@@ -66,7 +66,12 @@ async function publishOne(row) {
     try {
       captionBody = await downloadText(`reels/${row.id}/caption.md`);
     } catch { /* 無ければ null のまま */ }
-    result = await postReel(reelUrl, buildCaption(script, captionBody));
+    // cover.png が GCS にあれば cover_url として渡す（プロフィールグリッド用サムネ）
+    let coverUrl = null;
+    try {
+      coverUrl = await signObjectUrl(`reels/${row.id}/cover.png`);
+    } catch { /* 無ければ自動抽出に任せる */ }
+    result = await postReel(reelUrl, buildCaption(script, captionBody), coverUrl);
   }
   await upsertRow(row.id, {
     status: "published",

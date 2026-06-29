@@ -6,7 +6,12 @@
 
 import path from "path";
 import { bundle } from "@remotion/bundler";
-import { renderMedia, selectComposition, ensureBrowser } from "@remotion/renderer";
+import {
+  renderMedia,
+  renderStill,
+  selectComposition,
+  ensureBrowser,
+} from "@remotion/renderer";
 import { REEL_BOT_ROOT, BRAND } from "./config.js";
 import { wrapByBunsetsu, strWidth } from "./jpWrap.js";
 
@@ -20,11 +25,11 @@ function hookFontVmin(wrappedHook) {
 
 const FPS = 30;
 // 字幕1行の最大「表示幅」（全角=1.0/半角=0.5）。白カード(7vmin)に収まる実効値。
-const SUBTITLE_CPL = 12.5;
-// フック1行の最大表示幅。字幕と揃え、文節境界を自然に取れる幅を確保する
-// （11だと「持ったまま/亡くなったら、…」のような孤立短行が出やすかったため 12.5 に統一）。
-// フォントは行の最大幅から自動算出されるため、行が長くなった分だけ字が小さくなる。
-const HOOK_CPL = 12.5;
+// 12.5 だと「自宅兼事務所の光熱費」(10)+「はね、」(3)=13 で切れ、4行になるなど自然な
+// 文節境界を取れないケースが出るため 13 に拡張（フォントは自動縮小で吸収）。
+const SUBTITLE_CPL = 13.0;
+// フック1行の最大表示幅。字幕と揃える。
+const HOOK_CPL = 13.0;
 
 let _serveUrl = null;
 async function getServeUrl() {
@@ -102,6 +107,40 @@ export async function renderReelRemotion({
     subtitleCount: inputProps.subtitles.length,
     totalDurationSec,
   };
+}
+
+/**
+ * プロフィールグリッド・Reelsタブ用のカバー画像(PNG)を生成する。
+ * リール本編は上部にフックを置くが、プロフィール表示では上下が切られて見えなくなるため、
+ * カバー画像ではフックを中央付近に配置した「サムネ専用」レイアウトを別レンダリングする。
+ * @returns {Promise<{localPath: string}>}
+ */
+export async function renderReelCover({
+  script,
+  characterUrl,
+  characterScale = 1.4,
+  destPath,
+}) {
+  const wrappedHook = await wrapByBunsetsu(script.hook ?? "", HOOK_CPL);
+  const inputProps = {
+    hook: wrappedHook,
+    hookFontSize: `${hookFontVmin(wrappedHook)}vmin`,
+    credit: BRAND.voicevoxCredit(),
+    account: BRAND.accountName,
+    characterUrl: characterUrl ?? "",
+    characterScale,
+  };
+  await ensureBrowser();
+  const serveUrl = await getServeUrl();
+  const composition = await selectComposition({ serveUrl, id: "ReelCover", inputProps });
+  await renderStill({
+    composition,
+    serveUrl,
+    output: destPath,
+    inputProps,
+    imageFormat: "png",
+  });
+  return { localPath: destPath };
 }
 
 // ---------- CLI（単体テスト用）----------

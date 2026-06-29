@@ -79,6 +79,11 @@ function isNoun(token) {
 function isPrefix(token) {
   return !!token && token.pos === "接頭詞";
 }
+// 数式記号: 数字に挟まれた場合、数名詞の連鎖として扱う（33%÷6・5〜6 等を割らない）
+const MATH_KIGOU = new Set("÷×*/+−ー―〜~・=≒≦≧±");
+function isMathKigou(token) {
+  return !!token && token.pos === "記号" && MATH_KIGOU.has(token.surface_form);
+}
 
 /**
  * トークン列を「アトム（行頭に来てよいかたまり）」へ統合。
@@ -91,6 +96,8 @@ export function buildAtoms(tokens, cpl) {
   const units = []; // { surface, attachLeft, attachRight }
   let i = 0;
   let prevTok = null;
+  // 名詞鎖が「数式記号(÷〜× 等)」を跨いで継続中か。これが true の間に来た名詞は前のアトムに連結する。
+  let nounChainAlive = false;
   while (i < tokens.length) {
     const t = tokens[i];
     if (isOpenBracket(t)) {
@@ -110,22 +117,29 @@ export function buildAtoms(tokens, cpl) {
         // 名詞相当の1ユニット（行頭OK・行末OK・後続の助詞は付く）
         units.push({ surface: span, attachLeft: false, attachRight: false });
         prevTok = tokens[j - 1];
+        nounChainAlive = false; // 引用句で鎖は一旦切る
         i = j;
         continue;
       }
       // 長すぎ/閉じない → 開き括弧は次へ付けて通常処理に流す
       units.push({ surface: t.surface_form, attachLeft: false, attachRight: true });
       prevTok = t;
+      nounChainAlive = false;
       i++;
       continue;
     }
-    // 連続する名詞は結合（複合名詞: 消費税・所得税・確定申告・8万円 等を割らない）
-    const nounAttach = isNoun(t) && isNoun(prevTok);
+    // 名詞鎖: 直前が名詞、または直前が数式記号で鎖が継続中なら、現在の名詞も繋ぐ
+    // 例: 「消費税」「33%÷6」「約5〜6%」
+    const nounAttach = isNoun(t) && (isNoun(prevTok) || nounChainAlive);
     units.push({
       surface: t.surface_form,
       attachLeft: attachesLeft(t) || isCloseBracket(t) || nounAttach,
       attachRight: isPrefix(t), // 接頭詞は次の語に付ける（粗+利 を「粗利」のまま）
     });
+    // 鎖の更新: 名詞なら生かす / 鎖中の数式記号なら維持 / それ以外は切れる
+    if (isNoun(t)) nounChainAlive = true;
+    else if (isMathKigou(t) && nounChainAlive) {/* 維持 */}
+    else nounChainAlive = false;
     prevTok = t;
     i++;
   }

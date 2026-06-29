@@ -10,4 +10,9 @@
 // 新しい誤読を見つけたら、この配列に1行追加するだけ。
 export const CUSTOM_READINGS = [
   { surface: "衣装代", pronunciation: "イショウダイ", accent_type: 0, priority: 10 },
+  // 「1部屋」は『イチヘヤ』ではなく『ヒトヘヤ』。
+  // ※「2部屋」以降は『ニヘヤ/サンヘヤ』など漢字読みでも違和感少ないため固定しない。
+  // 台本側で『ひと部屋』とひらがな書きされた場合は VOICEVOX が標準で『ヒトヘヤ』と読む。
+  { surface: "1部屋", pronunciation: "ヒトヘヤ", accent_type: 1, priority: 10 },
+  { surface: "１部屋", pronunciation: "ヒトヘヤ", accent_type: 1, priority: 10 },
 ];
