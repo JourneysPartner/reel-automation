@@ -29,6 +29,7 @@ import {
   saveCaption,
 } from "./scriptGenerator.js";
 import { checkEngine, findSpeakerId, synthesizeFull } from "./voicevoxClient.js";
+import { toVoiceText } from "./voiceText.js";
 import { uploadFile, downloadText } from "./gcs.js";
 import { renderReelRemotion, renderReelCover } from "./remotionRender.js";
 import { postReel, buildCaption } from "./instagram.js";
@@ -131,7 +132,9 @@ export async function runPipeline(args = {}) {
       throw new Error(`VOICEVOX 未起動 (${env.VOICEVOX_HOST})。起動してから再実行してください。`);
     }
     const speakerId = await findSpeakerId();
-    const { wavBuffer, timings } = await synthesizeFull(script.full_script, speakerId);
+    // 表示は漢字のまま、音声合成だけ読みやすい表記に変換する（人→ひと, ㎡→平方メートル, 電気代→電気だい 等）
+    const voiceScript = toVoiceText(script.full_script);
+    const { wavBuffer, timings } = await synthesizeFull(script.full_script, speakerId, { voiceScript });
     fs.writeFileSync(voicePath, wavBuffer);
     fs.writeFileSync(timingsPath, JSON.stringify(timings, null, 2), "utf-8");
     console.log(`  ✓ 音声: ${voicePath} (${(wavBuffer.length / 1024).toFixed(1)} KB)`);

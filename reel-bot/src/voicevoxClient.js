@@ -119,9 +119,20 @@ export function splitSentences(text) {
 }
 
 // 全文を合成 → {wavBuffer, timings}
-export async function synthesizeFull(fullScript, speakerId, { flatten = true } = {}) {
-  const sentences = splitSentences(fullScript);
-  if (sentences.length === 0) throw new Error("台本が空です");
+// displayScript: 字幕・フックに表示する原文（漢字混じり）
+// opts.voiceScript: 音声合成に使う変換後テキスト。省略時は displayScript と同一
+//   - 文区切り（。！？）の数は displayScript と一致している必要がある
+//   - timings.text には displayScript の文がそのまま入る（字幕は表示テキストで描画）
+export async function synthesizeFull(displayScript, speakerId, { flatten = true, voiceScript = null } = {}) {
+  const displaySentences = splitSentences(displayScript);
+  if (displaySentences.length === 0) throw new Error("台本が空です");
+  const voiceSentences = voiceScript ? splitSentences(voiceScript) : displaySentences;
+  if (voiceSentences.length !== displaySentences.length) {
+    throw new Error(
+      `表示文と音声文の数が一致しません: display=${displaySentences.length} voice=${voiceSentences.length}。` +
+      `voiceText の変換で 。！？ の数が変わっていないか確認してください。`
+    );
+  }
 
   await registerUserDict(); // 合成前に読み矯正辞書を登録
 
@@ -129,7 +140,7 @@ export async function synthesizeFull(fullScript, speakerId, { flatten = true } =
   const pcmChunks = [];
   const durations = [];
 
-  for (const sent of sentences) {
+  for (const sent of voiceSentences) {
     const wav = await synthesizeOne(sent, speakerId, { flatten });
     const { fmt: f, data } = parseWav(wav);
     if (!fmt) fmt = f;
@@ -142,15 +153,15 @@ export async function synthesizeFull(fullScript, speakerId, { flatten = true } =
   const parts = [];
   const timings = [];
   let cursor = 0;
-  for (let i = 0; i < sentences.length; i++) {
+  for (let i = 0; i < displaySentences.length; i++) {
     timings.push({
-      text: sentences[i],
+      text: displaySentences[i], // 字幕には表示用テキスト（漢字）を残す
       start: Math.round(cursor * 1000) / 1000,
       end: Math.round((cursor + durations[i]) * 1000) / 1000,
     });
     parts.push(pcmChunks[i]);
     cursor += durations[i];
-    if (i < sentences.length - 1) {
+    if (i < displaySentences.length - 1) {
       parts.push(silence);
       cursor += VOICE.silenceSec;
     }
