@@ -13,6 +13,12 @@ export function toVoiceText(display) {
   if (!display) return display;
   let s = String(display);
 
+  // --- 範囲を表す 波ダッシュ / 全角チルダ → 「から」 ---
+  // 〜 (U+301C) と ～ (U+FF5E) はどちらも VOICEVOX の辞書に読みがなく、無音でスキップされる。
+  // 「8〜15%」→「8から15%」と読むよう置換する。
+  // ※ jpWrap の数式チェーンで表示側は「8〜15」を1アトム扱いのままなので、字幕の見た目は変わらない。
+  s = s.replace(/[〜～]/g, "から");
+
   // --- 単位記号 ---
   // ㎡ ㎢ ㎤ ㎥ ㎜ ㎝ ㎞ ㎏ ㎎ など合字を VOICEVOX が読めない
   s = s.replace(/㎡/g, "平方メートル");
