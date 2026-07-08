@@ -91,7 +91,8 @@ async function generateOne(p, revision = "") {
   let previewUrl;
   if (p.type === "carousel") {
     // カルーセル: Python で生成 → スライドとキャプションを GCS へ
-    const c = await generateCarousel(p);
+    // 差し戻し時は revision を渡して指定箇所のみ最小修正させる（全ページの再生成を防ぐ）
+    const c = await generateCarousel(p, { revision });
     const urls = [];
     for (let i = 0; i < c.slides.length; i++) {
       const obj = `posts/${p.date}/slide_${i + 1}.png`;

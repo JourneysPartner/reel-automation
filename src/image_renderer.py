@@ -371,6 +371,16 @@ def _process_content_body(text: str) -> Markup:
     # g: 番号リストの改行
     escaped = _NUMBER_LIST_RE.sub(r"<br>\1", escaped)
 
+    # h: 「①〜③XXX + 空白 + 結論文」パターンで、結論文の前に <br> を入れる
+    #    例: 「③目的は何か この3つで交際費・～」→「③目的は何か<br>この3つで交際費・～」
+    #    これで長い ③行が「・」等で不自然にブラウザ改行されるのを防ぐ。
+    escaped = re.sub(
+        r"([①-⑳][^\s<]+)[ 　]+"
+        r"(?=(?:この[\d０-９]+[つ点個]|以上|上記|全部|全て|どれも|どちらも))",
+        r"\1<br>",
+        escaped,
+    )
+
     return Markup(escaped)
 
 

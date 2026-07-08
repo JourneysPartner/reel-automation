@@ -37,13 +37,16 @@ export function listSlides(date) {
  * @param {object} post schedule.yaml のエントリ（date, day を使う）
  * @returns {Promise<{date, dir, slides:string[], caption:string, captionPath:string}>}
  */
-export async function generateCarousel(post, { reuse = false } = {}) {
+export async function generateCarousel(post, { reuse = false, revision = "" } = {}) {
   const date = post.date;
   const dir = path.join(POSTS_DIR, date);
 
   if (!(reuse && listSlides(date).length >= 2)) {
     // date でlookup（複数月を schedule.yaml に蓄積しても衝突しない）
-    await runPython(["-m", "src.content_generator", "--date", date]);
+    // revision が指定されていれば「差分編集モード」で指定箇所だけ最小修正する
+    const contentArgs = ["-m", "src.content_generator", "--date", date];
+    if (revision) contentArgs.push("--revision", revision);
+    await runPython(contentArgs);
     await runPython(["-m", "src.image_renderer", "--date", date]);
   }
 
