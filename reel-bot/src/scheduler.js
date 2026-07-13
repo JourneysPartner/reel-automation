@@ -70,6 +70,8 @@ function parseArgs(argv) {
     else if (v === "--id") a.id = argv[++i];
     else if (v === "--type") a.type = argv[++i];
     else if (v === "--revision") a.revision = argv[++i];
+    // 既存の台本を保持したまま音声・字幕・動画だけ再生成する（字幕タイミング等の修正用）
+    else if (v === "--reuse-script") a.reuseScript = true;
   }
   return a;
 }
@@ -78,7 +80,7 @@ function themeOf(p) {
   return [p.topic, p.angle].filter(Boolean).join("／");
 }
 
-async function generateOne(p, revision = "") {
+async function generateOne(p, revision = "", { reuseScript = false } = {}) {
   // 状態: generating
   await upsertRow(p.date, {
     publish_date: p.date,
@@ -104,7 +106,7 @@ async function generateOne(p, revision = "") {
   } else {
     // リール: schedule の topic/angle を台本ソースに（slug=公開日）
     const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
-    await runPipeline({ text: sourceText, slug: p.date, revision, postInfo: p });
+    await runPipeline({ text: sourceText, slug: p.date, revision, postInfo: p, reuseScript });
     // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
     previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, { expiryMs: PREVIEW_EXPIRY_MS });
   }
@@ -156,7 +158,7 @@ async function main() {
   for (const p of due) {
     try {
       console.log(`\n=== 生成: ${p.date} [${p.type}]${args.revision ? "（修正反映）" : ""} ===`);
-      const url = await generateOne(p, args.revision || "");
+      const url = await generateOne(p, args.revision || "", { reuseScript: !!args.reuseScript });
       console.log(`  ✓ ${p.date} 完了。確認リンク: ${url}`);
     } catch (e) {
       console.error(`  ✗ ${p.date} 失敗: ${e.message}`);

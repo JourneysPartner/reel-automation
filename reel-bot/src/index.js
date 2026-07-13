@@ -73,7 +73,19 @@ export async function runPipeline(args = {}) {
 
   // ===== ① 台本 =====
   let script;
-  if (args.reuse && !args.revision && fs.existsSync(scriptPath)) {
+  if (args.reuseScript && !args.revision) {
+    // 既存 script.json を保持したまま、音声・字幕・動画のみ再生成するモード。
+    // ローカルに無ければ GCS から取得（GitHub Actions のクリーン環境用）
+    if (fs.existsSync(scriptPath)) {
+      console.log("=== ① 台本（既存 script.json をローカルから再利用）===");
+      script = JSON.parse(fs.readFileSync(scriptPath, "utf-8"));
+    } else {
+      console.log("=== ① 台本（GCS の script.json を取得して再利用）===");
+      const text = await downloadText(`reels/${slug}/script.json`);
+      script = JSON.parse(text);
+      saveScript(script, slug);
+    }
+  } else if (args.reuse && !args.revision && fs.existsSync(scriptPath)) {
     console.log("=== ① 台本（既存を再利用）===");
     script = JSON.parse(fs.readFileSync(scriptPath, "utf-8"));
   } else {

@@ -112,10 +112,26 @@ export async function synthesizeOne(text, speakerId, { flatten = true } = {}) {
 }
 
 export function splitSentences(text) {
-  return text
-    .split(/(?<=[。！？])/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // 「」『』『内の 。！？ は文の区切りとして扱わない（引用文が2フレームに割れ「」」から始まる字幕を防ぐ）
+  const OPEN = new Set(["「", "『"]);
+  const CLOSE = new Set(["」", "』"]);
+  const TERM = new Set(["。", "！", "？"]);
+  const out = [];
+  let cur = "";
+  let depth = 0;
+  for (const ch of text) {
+    cur += ch;
+    if (OPEN.has(ch)) depth++;
+    else if (CLOSE.has(ch)) depth = Math.max(0, depth - 1);
+    else if (TERM.has(ch) && depth === 0) {
+      const s = cur.trim();
+      if (s) out.push(s);
+      cur = "";
+    }
+  }
+  const tail = cur.trim();
+  if (tail) out.push(tail);
+  return out;
 }
 
 // 全文を合成 → {wavBuffer, timings}

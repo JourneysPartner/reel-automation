@@ -17,6 +17,10 @@ on:
         description: "対象表示のみ（生成しない）"
         type: boolean
         default: false
+      reuse_script:
+        description: "既存の台本(script.json)を保持したまま音声・字幕・動画のみ再生成（字幕タイミング修正等の用途）"
+        type: boolean
+        default: false
 
 jobs:
   generate:
@@ -62,6 +66,7 @@ jobs:
           if [ -n "${{ github.event.inputs.date }}" ]; then ARGS="$ARGS --date ${{ github.event.inputs.date }}"; fi
           if [ -n "${{ github.event.inputs.id }}" ]; then ARGS="$ARGS --id ${{ github.event.inputs.id }}"; fi
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ "${{ github.event.inputs.reuse_script }}" = "true" ]; then ARGS="$ARGS --reuse-script"; fi
           echo "value=$ARGS" >> "$GITHUB_OUTPUT"
 
       - name: Run scheduler (generate due reels)
