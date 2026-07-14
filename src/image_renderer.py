@@ -352,6 +352,11 @@ def _process_content_body(text: str) -> Markup:
     # c: 「。」の後ろで改行（末尾以外）
     escaped = re.sub(r"。(?=.)", r"。<br>", escaped)
 
+    # c2: 箇条書き「・」の直前にある空白（半角/全角）を <br> に置換して行頭に持ってくる
+    #     「A ・B ・C」→「A<br>・B<br>・C」（3項目なら3行に）
+    #     「ジョン・スミス」のように空白が無い中黒は影響しない
+    escaped = re.sub(r"[ 　]+・", "<br>・", escaped)
+
     # d: 連続 <br> を 1 個に正規化
     escaped = re.sub(r"(?:<br>){2,}", r"<br>", escaped)
 

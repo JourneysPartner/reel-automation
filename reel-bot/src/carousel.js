@@ -8,6 +8,7 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import { PROJECT_ROOT, POSTS_DIR } from "./config.js";
+import { downloadText } from "./gcs.js";
 
 const PYTHON = process.env.PYTHON_BIN || "python";
 
@@ -19,6 +20,16 @@ function runPython(args) {
       code === 0 ? resolve() : reject(new Error(`python ${args.join(" ")} が失敗 (code ${code})`))
     );
   });
+}
+
+/** 差分編集モード用: GCS から前回の slides.json / caption.md / metadata.json をローカルに復元。 */
+async function _restorePreviousFromGcs(date, dir) {
+  for (const name of ["slides.json", "caption.md", "metadata.json"]) {
+    try {
+      const text = await downloadText(`posts/${date}/${name}`);
+      fs.writeFileSync(path.join(dir, name), text, "utf-8");
+    } catch { /* GCS に無ければスキップ（初回生成として通常フローに落ちる） */ }
+  }
 }
 
 /** output/posts/<date>/ の slide_N.png を番号順で返す。 */
@@ -40,8 +51,11 @@ export function listSlides(date) {
 export async function generateCarousel(post, { reuse = false, revision = "" } = {}) {
   const date = post.date;
   const dir = path.join(POSTS_DIR, date);
+  fs.mkdirSync(dir, { recursive: true });
 
   if (!(reuse && listSlides(date).length >= 2)) {
+    // 差分編集モードで前回内容が必要。CI(クリーン環境)ではローカルに無いので GCS から復元する。
+    if (revision) await _restorePreviousFromGcs(date, dir);
     // date でlookup（複数月を schedule.yaml に蓄積しても衝突しない）
     // revision が指定されていれば「差分編集モード」で指定箇所だけ最小修正する
     const contentArgs = ["-m", "src.content_generator", "--date", date];

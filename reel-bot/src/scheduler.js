@@ -102,6 +102,11 @@ async function generateOne(p, revision = "", { reuseScript = false } = {}) {
       urls.push(await signObjectUrl(obj, { expiryMs: PREVIEW_EXPIRY_MS }));
     }
     await uploadFile(c.captionPath, `posts/${p.date}/caption.md`); // 公開時のキャプション用
+    // slides.json / metadata.json も上げておく（次回以降の差分編集モードで CI から復元するため）
+    const slidesJsonPath = path.join(c.dir, "slides.json");
+    const metadataPath = path.join(c.dir, "metadata.json");
+    if (fs.existsSync(slidesJsonPath)) await uploadFile(slidesJsonPath, `posts/${p.date}/slides.json`);
+    if (fs.existsSync(metadataPath)) await uploadFile(metadataPath, `posts/${p.date}/metadata.json`);
     previewUrl = JSON.stringify(urls); // 承認ページが画像配列として描画
   } else {
     // リール: schedule の topic/angle を台本ソースに（slug=公開日）
