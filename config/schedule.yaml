@@ -295,3 +295,184 @@ posts:
     target_persona: wealth_holder
     topic: "夏の資産組み換え前に確認、含み損を使った節税の限界と注意点"
     angle: "株・不動産の含み損を年内に実現させる損益通算の活用法と、やりすぎで否認されるラインを解説"
+
+  - day: 1
+    date: "2026-08-01"
+    type: reel
+    target_persona: freelancer
+    topic: "8月の売上が増えると9月に税金が増える理由"
+    angle: "フリーランスが夏の繁忙期後に直面する予定納税・中間申告の仕組みを60秒で解説"
+  - day: 2
+    date: "2026-08-02"
+    type: carousel
+    target_persona: ec_seller
+    topic: "海外ECプラットフォーム手数料の消費税仕訳完全ガイド"
+    angle: "Amazon・Shopify・Etsyなど海外発プラットフォームへの手数料が課税・不課税どちらになるか判定フローを図解"
+  - day: 3
+    date: "2026-08-03"
+    type: reel
+    target_persona: influencer
+    topic: "案件収入に消費税が乗るタイミング、知ってる？"
+    angle: "インフルエンサーが課税事業者になった瞬間からPR報酬の請求書に消費税を載せるべき理由を1分で整理"
+  - day: 4
+    date: "2026-08-04"
+    type: reel
+    target_persona: smb_owner
+    topic: "試算表を月1で見ない社長が気づかない資金ショートの予兆"
+    angle: "8月の繁忙期・夏季休業明けに売掛金と買掛金のズレが拡大しやすい構造を経営者目線で可視化"
+  - day: 5
+    date: "2026-08-05"
+    type: carousel
+    target_persona: wealth_holder
+    topic: "夏の不動産贈与、更地と建付地で評価が変わる理由"
+    angle: "相続税評価額を下げる手法として建付地評価減が使える条件と2026年現在の注意点を体系的に解説"
+  - day: 6
+    date: "2026-08-06"
+    type: reel
+    target_persona: freelancer
+    topic: "フリーランスの旅費交通費、出張と移動の境界線はここ"
+    angle: "取材・商談・研修など名目が曖昧な移動費を税務署に否認されないための記録ルールを具体例で説明"
+  - day: 7
+    date: "2026-08-07"
+    type: reel
+    target_persona: ec_seller
+    topic: "夏の仕入れ急増で消費税の納付額が跳ね上がる構造"
+    angle: "8月の大量仕入れが翌期の消費税課税売上割合に影響するケースをEC事業者向けに数字で示す"
+  - day: 8
+    date: "2026-08-08"
+    type: carousel
+    target_persona: influencer
+    topic: "クリエイターの収益源別・源泉徴収される条件まとめ"
+    angle: "広告収入・PR・投げ銭・グッズ・講演料など収益タイプごとに源泉徴収の有無と税率を一枚カルーセルで整理"
+  - day: 9
+    date: "2026-08-09"
+    type: reel
+    target_persona: smb_owner
+    topic: "社長が夏休み前に確認すべき資金繰り表の読み方3点"
+    angle: "売上入金サイクルと支払いのズレを経営者自身が把握するための最低限の指標を具体的な数字例で解説"
+  - day: 10
+    date: "2026-08-10"
+    type: reel
+    target_persona: wealth_holder
+    topic: "外国株式の配当、二重課税を取り戻す外国税額控除の手順"
+    angle: "米国株・ETFの配当に源泉徴収された外国税を確定申告で還付請求する計算フローを資産家向けに解説"
+  - day: 11
+    date: "2026-08-11"
+    type: carousel
+    target_persona: freelancer
+    topic: "フリーランスの家賃按分、税務調査で指摘される割合の目安"
+    angle: "在宅勤務日数・専用スペース面積・使用時間の3軸で按分率を合理的に算出する方法をスライドで図解"
+  - day: 12
+    date: "2026-08-12"
+    type: reel
+    target_persona: ec_seller
+    topic: "返品・キャンセルが多い夏セール後の売上修正仕訳"
+    angle: "EC事業者が8月セール後に大量発生する返品を売上取消か仕入戻しかで正しく処理する手順を解説"
+  - day: 13
+    date: "2026-08-13"
+    type: reel
+    target_persona: influencer
+    topic: "海外ブランドからのPR報酬、外貨建て請求書の作り方"
+    angle: "ドル・ユーロ建てで受け取るPR収入の円換算レートの選び方と請求書記載事項を実例付きで解説"
+  - day: 14
+    date: "2026-08-14"
+    type: carousel
+    target_persona: smb_owner
+    topic: "役員退職金の積立を今から始める会社が得する理由"
+    angle: "中小企業経営者が在任中に退職給与規程を整備し税務上の損金算入要件を満たす準備手順を解説"
+  - day: 15
+    date: "2026-08-15"
+    type: reel
+    target_persona: wealth_holder
+    topic: "相続発生後3か月以内に必ずやること7つのチェックリスト"
+    angle: "相続放棄の熟慮期間・財産調査・遺言確認など富裕層が見落としやすい初動タスクを時系列で整理"
+  - day: 16
+    date: "2026-08-16"
+    type: reel
+    target_persona: freelancer
+    topic: "フリーランスの国民年金付加保険料、節税効果を計算してみた"
+    angle: "月400円の付加保険料が確定申告の社会保険料控除と老後給付の両面でどれだけ有利かを数字で比較"
+  - day: 17
+    date: "2026-08-17"
+    type: carousel
+    target_persona: ec_seller
+    topic: "ネットショップの景品・プレゼント企画、消費税と所得税の扱い"
+    angle: "フォロワー向けプレゼントキャンペーンの商品購入費が経費になる条件と消費税仕入税額控除の可否を解説"
+  - day: 18
+    date: "2026-08-18"
+    type: reel
+    target_persona: influencer
+    topic: "インフルエンサーが受け取る現物PR品の経費計上ルール"
+    angle: "化粧品・家電・食品など現物支給された商品を収入計上すべきケースとしなくていいケースを判定フローで整理"
+  - day: 19
+    date: "2026-08-19"
+    type: reel
+    target_persona: smb_owner
+    topic: "法人の決算月を8月にするメリットとデメリット"
+    angle: "消費税の課税事業者判定・繁忙期ズレ・節税タイミングの観点から8月決算が有利になる業種と条件を解説"
+  - day: 20
+    date: "2026-08-20"
+    type: carousel
+    target_persona: wealth_holder
+    topic: "生命保険を使った相続対策、2026年以降の注意点"
+    angle: "非課税枠500万円×法定相続人の活用と契約者・被保険者・受取人の設定ミスで税種が変わるリスクを解説"
+  - day: 21
+    date: "2026-08-21"
+    type: reel
+    target_persona: freelancer
+    topic: "副業フリーランスが開業届を出すベストタイミングはいつ"
+    angle: "開業届の提出が青色申告・損失繰越・小規模企業共済に与える影響を収入額別に整理して解説"
+  - day: 22
+    date: "2026-08-22"
+    type: reel
+    target_persona: ec_seller
+    topic: "仕入れた商品が税関で止まったときの消費税の処理"
+    angle: "輸入許可前に在庫計上できるか・関税と消費税の仕訳タイミングをEC事業者向けに実務ベースで解説"
+  - day: 23
+    date: "2026-08-23"
+    type: carousel
+    target_persona: influencer
+    topic: "コラボグッズの収益分配、契約書と税務処理の一致確認"
+    angle: "他クリエイターや企業とのコラボ販売で収益を按分するとき消費税の納税義務者と仕訳の帰属を整理"
+  - day: 24
+    date: "2026-08-24"
+    type: reel
+    target_persona: smb_owner
+    topic: "社長の個人保証、外す手順と金融機関との交渉タイミング"
+    angle: "経営者保証ガイドラインを使った保証解除の条件整備と税理士が関与できる財務改善の具体的ステップ"
+  - day: 25
+    date: "2026-08-25"
+    type: reel
+    target_persona: wealth_holder
+    topic: "暗号資産の贈与、時価評価と贈与税申告の落とし穴"
+    angle: "ビットコイン等を子や孫に贈与するとき取得費の引き継ぎルールと贈与税評価額の算定方法を解説"
+  - day: 26
+    date: "2026-08-26"
+    type: carousel
+    target_persona: freelancer
+    topic: "フリーランスの請求書に消費税を書かないと損する理由"
+    angle: "インボイス登録済みなのに請求書の消費税欄を省略したときの取引先への影響と自分の税負担を比較解説"
+  - day: 27
+    date: "2026-08-27"
+    type: reel
+    target_persona: ec_seller
+    topic: "越境ECの為替差損益、決算で正しく計上できていますか"
+    angle: "外貨建て売上の期末換算と実現為替差損益の仕訳を間違えやすいパターン別に図解して解説"
+  - day: 28
+    date: "2026-08-28"
+    type: reel
+    target_persona: influencer
+    topic: "Instagramショッピング機能の売上、消費税の申告区分は"
+    angle: "SNS経由のデジタル販売・物販・海外向け販売で消費税の課税・不課税・免税が変わる判定ポイントを解説"
+  - day: 29
+    date: "2026-08-29"
+    type: carousel
+    target_persona: smb_owner
+    topic: "事業承継で株価を下げる3つのタイミングと手法"
+    angle: "利益が出ている中小企業が自社株評価額を合法的に引き下げるための純資産・類似業種比準の操作ポイントを解説"
+  - day: 30
+    date: "2026-08-30"
+    type: reel
+    target_persona: wealth_holder
+    topic: "海外移住後も続く日本の相続税、10年ルールの現在地"
+    angle: "2026年時点の相続税の国外転出ルール改正を踏まえ富裕層が海外移住前に確認すべき申告義務の範囲を整理"
