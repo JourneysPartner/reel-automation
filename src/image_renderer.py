@@ -357,6 +357,15 @@ def _process_content_body(text: str) -> Markup:
         escaped,
     )
 
+    # a3: 「→」比較 — 「見直さない→A 見直した→B」のような矢印区切りの対比で、
+    #     後段のラベルの前で改行させる。直前がスペース/句読点/改行タグでないと発火しない。
+    escaped = re.sub(
+        r"(?<=[ 　、。])"
+        r"([^\s→<>、。]{1,12})→",
+        r"<br>\1→",
+        escaped,
+    )
+
     # b1: 時間ラベル直後の → を削除
     escaped = re.sub(
         r"((?:" + TIME_LABELS + r")[:：]?\s*)→\s*",
