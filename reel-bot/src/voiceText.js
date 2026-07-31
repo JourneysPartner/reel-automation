@@ -13,6 +13,14 @@ export function toVoiceText(display) {
   if (!display) return display;
   let s = String(display);
 
+  // --- 英単語の読み補正 ---
+  // VOICEVOX は英字を1文字ずつ読むため、YES→「ワイイーエス」等になりがち。
+  // 一般的に日本語として使われる英単語だけ、カタカナ読みに書き換える。
+  // 単語境界（英字が続いていないこと）を条件にして、部分マッチを避ける。
+  s = s.replace(/YES(?![A-Za-z])/g, "イエス").replace(/(?<![A-Za-z])yes(?![A-Za-z])/g, "イエス");
+  s = s.replace(/NO(?![A-Za-z])/g, "ノー").replace(/(?<![A-Za-z])no(?![A-Za-z])/g, "ノー");
+  s = s.replace(/OK(?![A-Za-z])/g, "オーケー").replace(/(?<![A-Za-z])ok(?![A-Za-z])/g, "オーケー");
+
   // --- 範囲を表す 波ダッシュ / 全角チルダ → 「から」 ---
   // 〜 (U+301C) と ～ (U+FF5E) はどちらも VOICEVOX の辞書に読みがなく、無音でスキップされる。
   // 「8〜15%」→「8から15%」と読むよう置換する。
