@@ -112,18 +112,23 @@ export async function synthesizeOne(text, speakerId, { flatten = true } = {}) {
 }
 
 export function splitSentences(text) {
-  // 「」『』『内の 。！？ は文の区切りとして扱わない（引用文が2フレームに割れ「」」から始まる字幕を防ぐ）
+  // 「」『』内の 。！？ は文の区切りとして扱わない（引用文が2フレームに割れ「」」から始まる字幕を防ぐ）
   const OPEN = new Set(["「", "『"]);
   const CLOSE = new Set(["」", "』"]);
   const TERM = new Set(["。", "！", "？"]);
+  const chars = [...text];
   const out = [];
   let cur = "";
   let depth = 0;
-  for (const ch of text) {
+  for (let i = 0; i < chars.length; i++) {
+    const ch = chars[i];
     cur += ch;
     if (OPEN.has(ch)) depth++;
     else if (CLOSE.has(ch)) depth = Math.max(0, depth - 1);
     else if (TERM.has(ch) && depth === 0) {
+      // 連続する終端文字（！？、！！、？！ 等）は同じ文に含める
+      const next = chars[i + 1];
+      if (next && TERM.has(next)) continue;
       const s = cur.trim();
       if (s) out.push(s);
       cur = "";
