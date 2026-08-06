@@ -109,6 +109,7 @@ export async function runPipeline(args = {}) {
     script = await generateScript(sourceText, {
       revisionComment: args.revision || "",
       previousScript,
+      ntaRefText: args.ntaRefText || "",
     });
     saveScript(script, slug);
   }

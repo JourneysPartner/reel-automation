@@ -26,6 +26,7 @@ import { sendMessage, buildReviewMessage, buildErrorMessage } from "./chatwork.j
 import { makeApprovalUrl } from "./approval.js";
 import { signObjectUrl, uploadFile } from "./gcs.js";
 import { generateCarousel } from "./carousel.js";
+import { resolveNtaSources } from "./ntaSourceResolver.js";
 
 const PREVIEW_EXPIRY_MS = 7 * 24 * 3600 * 1000; // 確認用URLの有効期限（7日＝V4上限）
 
@@ -111,7 +112,9 @@ async function generateOne(p, revision = "", { reuseScript = false } = {}) {
   } else {
     // リール: schedule の topic/angle を台本ソースに（slug=公開日）
     const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
-    await runPipeline({ text: sourceText, slug: p.date, revision, postInfo: p, reuseScript });
+    const { refText: ntaRefText } = resolveNtaSources(p);
+    if (ntaRefText) console.log(`  NTA税務参考資料: ${ntaRefText.split("\n").filter(l => l.startsWith("■")).length}件取得`);
+    await runPipeline({ text: sourceText, slug: p.date, revision, postInfo: p, reuseScript, ntaRefText });
     // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
     previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, { expiryMs: PREVIEW_EXPIRY_MS });
   }

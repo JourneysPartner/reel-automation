@@ -24,6 +24,13 @@ export const SYSTEM_PROMPT = `あなたはInstagramリール動画の台本ラ�
 - 最後は「気になったらプロフのLINEからね！」で締める
 - 総文字数は200〜350文字（読み上げで30〜60秒になる量）
 
+【税務正確性ルール（最重要）】
+- 税率・税額・控除率・みなし仕入率・適用要件など具体的な数値を使う場合は、
+  必ず【税務参考資料】セクションの公式情報と整合させること
+- 参考資料がある場合、そこに記載されていない数値を推測で使うのは絶対NG
+- 「約◯%」「だいたい◯万円」のような曖昧な数値表現も避け、正確な数値を使う
+- 参考資料がない場合は、具体的な数値を避けて定性的な説明にとどめる
+
 【NG表現 → OK表現の変換ルール】
 × 「〜ということになります」 → ○ 「〜になるんだよ」
 × 「注意が必要です」 → ○ 「気をつけて」
@@ -62,12 +69,18 @@ export const SYSTEM_PROMPT = `あなたはInstagramリール動画の台本ラ�
   "hashtags": ["関連ハッシュタグ5個"]
 }`;
 
-const USER_TEMPLATE = (sourceText) => `以下の記事・投稿の内容を、上記ルールに従って
+const USER_TEMPLATE = (sourceText, ntaRefText = "") => {
+  let prompt = `以下の記事・投稿の内容を、上記ルールに従って
 Instagramリール用の台本にしてください。
 
 ---
 ${sourceText}
 ---`;
+  if (ntaRefText) {
+    prompt += `\n\n${ntaRefText}`;
+  }
+  return prompt;
+};
 
 // ---------- 入力ソース ----------
 export async function fetchUrlText(url, maxChars = 6000) {
@@ -125,7 +138,7 @@ function extractJson(textOut) {
 // ---------- Claude 呼び出し ----------
 export async function generateScript(
   sourceText,
-  { model = MODEL, revisionComment = "", previousScript = null } = {}
+  { model = MODEL, revisionComment = "", previousScript = null, ntaRefText = "" } = {}
 ) {
   if (!env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY が未設定です");
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
@@ -152,7 +165,7 @@ export async function generateScript(
       `full_script は hook+body+closing と必ず一致させてください。`;
     temperature = 0.2;
   } else {
-    userContent = USER_TEMPLATE(sourceText);
+    userContent = USER_TEMPLATE(sourceText, ntaRefText);
     temperature = 0.8;
   }
 

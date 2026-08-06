@@ -25,6 +25,8 @@ import yaml
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
+from src.nta_source_resolver import resolve_nta_sources
+
 
 # Windows コンソール (cp932) で絵文字・全角文字を含むキャプションを print できるよう UTF-8 化
 if hasattr(sys.stdout, "reconfigure"):
@@ -222,6 +224,8 @@ CREATOR_USER_TEMPLATE = """以下の条件で、Instagramカルーセル投稿�
 ※ 上記候補から、本投稿テーマに最も合うものを1つ選び、「合言葉」として CTA body に「」内で記載すること。
 ※ どれか1個を「」で囲んで body に含める。例: 「👇 LINEから『XXX』と送ってね📩 ◯◯を無料プレゼント」
 
+{nta_ref_section}
+
 【出力フォーマット】
 必ず次の構造のJSONのみを返してください（前後に説明文・コードフェンスは付けない）。
 
@@ -325,6 +329,12 @@ def build_creator_request(post: dict, persona: dict, settings: dict) -> tuple[li
     cta_keyword_options = pick_cta_keyword_options(post, settings)
     cta_keyword_options_str = _format_cta_keyword_options(cta_keyword_options)
 
+    # NTA ソースデータベースからトピック関連の公式情報を取得
+    nta = resolve_nta_sources(post)
+    nta_ref_section = nta["ref_text"] if nta["ref_text"] else "（税務参考資料: なし）"
+    if nta["refs"]:
+        print(f"  NTA税務参考資料: {len(nta['refs'])}件取得")
+
     user_text = CREATOR_USER_TEMPLATE.format(
         post_date=post["date"],
         post_type=post.get("type", "carousel"),
@@ -347,6 +357,7 @@ def build_creator_request(post: dict, persona: dict, settings: dict) -> tuple[li
         tag_min=settings["hashtag_min"],
         tag_max=settings["hashtag_max"],
         cta_keyword_options=cta_keyword_options_str,
+        nta_ref_section=nta_ref_section,
     )
     messages = [{"role": "user", "content": user_text}]
     return system_blocks, messages
