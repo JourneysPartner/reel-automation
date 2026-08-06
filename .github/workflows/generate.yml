@@ -32,6 +32,16 @@ jobs:
           - 50021:50021
     steps:
       - uses: actions/checkout@v4
+
+      # 国税庁ソースDB（hp-vlog）を取得して NTA_SOURCES_DIR に配置
+      - name: Fetch NTA sources from hp-vlog
+        uses: actions/checkout@v4
+        with:
+          repository: JourneysPartner/hp-vlog
+          path: _hp-vlog
+          sparse-checkout: data/nta-sources
+          sparse-checkout-cone-mode: true
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -86,6 +96,7 @@ jobs:
           APPROVAL_SECRET: ${{ secrets.APPROVAL_SECRET }}
           LEAD_DAYS: "3"
           VOICEVOX_HOST: http://localhost:50021
+          NTA_SOURCES_DIR: ${{ github.workspace }}/_hp-vlog/data/nta-sources
         run: node src/scheduler.js ${{ steps.args.outputs.value }}
 
       - name: Upload artifacts

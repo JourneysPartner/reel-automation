@@ -16,6 +16,15 @@ jobs:
           - 50021:50021
     steps:
       - uses: actions/checkout@v4
+
+      - name: Fetch NTA sources from hp-vlog
+        uses: actions/checkout@v4
+        with:
+          repository: JourneysPartner/hp-vlog
+          path: _hp-vlog
+          sparse-checkout: data/nta-sources
+          sparse-checkout-cone-mode: true
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -59,4 +68,5 @@ jobs:
           APPROVAL_BASE_URL: ${{ secrets.APPROVAL_BASE_URL }}
           APPROVAL_SECRET: ${{ secrets.APPROVAL_SECRET }}
           VOICEVOX_HOST: http://localhost:50021
+          NTA_SOURCES_DIR: ${{ github.workspace }}/_hp-vlog/data/nta-sources
         run: node src/scheduler.js --id "$PAYLOAD_ID" --revision "$PAYLOAD_COMMENT"
