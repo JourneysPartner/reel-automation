@@ -21,7 +21,7 @@ const PERSONA_TO_CATEGORIES = {
   freelancer: ["shotoku", "shohi"],
   influencer: ["shotoku", "gensen"],
   smb_owner: ["shotoku", "shohi", "hojin"],
-  wealth_holder: ["sozoku", "zoyo", "hyoka"],
+  wealth_holder: ["shotoku", "sozoku", "zoyo", "hyoka"],
   general: ["shotoku", "shohi"],
 };
 

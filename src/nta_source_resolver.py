@@ -31,7 +31,7 @@ _PERSONA_TO_CATEGORIES: dict[str, list[str]] = {
     "freelancer": ["shotoku", "shohi"],
     "influencer": ["shotoku", "gensen"],
     "smb_owner": ["shotoku", "shohi", "hojin"],
-    "wealth_holder": ["sozoku", "zoyo", "hyoka"],
+    "wealth_holder": ["shotoku", "sozoku", "zoyo", "hyoka"],
 }
 
 _STOP_WORDS = frozenset(
