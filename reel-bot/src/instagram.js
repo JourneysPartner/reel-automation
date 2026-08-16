@@ -113,12 +113,26 @@ export async function postCarousel(imageUrls, caption) {
     throw new Error(`カルーセルは2〜10枚です（現在 ${imageUrls.length}枚）`);
   }
 
-  // 1. 子コンテナ作成
+  // 1. 子コンテナ作成（一時的なダウンロード失敗に備え最大3回リトライ）
   const childIds = [];
-  for (const url of imageUrls) {
-    const child = await graph("POST", `${igId}/media`, {
-      body: { image_url: url, is_carousel_item: "true" },
-    });
+  for (let i = 0; i < imageUrls.length; i++) {
+    const url = imageUrls[i];
+    console.log(`    子コンテナ ${i + 1}/${imageUrls.length}: ${url.slice(0, 120)}…`);
+    let child;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        child = await graph("POST", `${igId}/media`, {
+          body: { image_url: url, is_carousel_item: "true" },
+        });
+        break;
+      } catch (e) {
+        if (attempt === 3) throw e;
+        const wait = attempt * 5;
+        console.log(`    ⚠ 子コンテナ${i + 1} 失敗(${attempt}/3): ${e.message.slice(0, 120)}`);
+        console.log(`      ${wait}秒後にリトライ…`);
+        await new Promise((r) => setTimeout(r, wait * 1000));
+      }
+    }
     childIds.push(child.id);
   }
   // 2. 子の処理待ち

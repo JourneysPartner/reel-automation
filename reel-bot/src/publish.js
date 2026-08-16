@@ -56,6 +56,7 @@ async function publishOne(row) {
     if (slideObjs.length < 2) throw new Error(`スライドが不足: ${slideObjs.length}枚`);
     const urls = [];
     for (const obj of slideObjs) urls.push(await signObjectUrl(obj));
+    console.log(`  署名URL ${urls.length}枚生成完了`);
     result = await postCarousel(urls, caption);
   } else {
     const script = JSON.parse(await downloadText(`reels/${row.id}/script.json`));

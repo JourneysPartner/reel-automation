@@ -83,12 +83,23 @@ export async function signObjectUrl(objectPath, { expiryMs = DEFAULT_SIGNED_EXPI
   const file = getStorage().bucket(env.GCS_BUCKET).file(objectPath);
   const [exists] = await file.exists();
   if (!exists) throw new Error(`GCS にオブジェクトがありません: ${objectPath}`);
-  const [url] = await file.getSignedUrl({
+  const ext = path.extname(objectPath).toLowerCase();
+  const ct = CONTENT_TYPES[ext];
+  const opts = {
     version: "v4",
     action: "read",
     expires: Date.now() + expiryMs,
-  });
+  };
+  if (ct) {
+    opts.queryParams = { "response-content-type": ct };
+  }
+  const [url] = await file.getSignedUrl(opts);
   return url;
+}
+
+/** 公開URL（バケットが allUsers 読み取り許可の場合のみ有効）。 */
+export function publicUrl(objectPath) {
+  return `https://storage.googleapis.com/${env.GCS_BUCKET}/${encodeURI(objectPath)}`;
 }
 
 /** 既存オブジェクトをテキストとして取得。 */
