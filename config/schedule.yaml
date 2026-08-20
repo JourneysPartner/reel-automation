@@ -476,3 +476,184 @@ posts:
     target_persona: wealth_holder
     topic: "海外移住後も続く日本の相続税、10年ルールの現在地"
     angle: "2026年時点の相続税の国外転出ルール改正を踏まえ富裕層が海外移住前に確認すべき申告義務の範囲を整理"
+
+  - day: 1
+    date: "2026-09-01"
+    type: reel
+    target_persona: freelancer
+    topic: "9月の経費整理、年末を楽にする仕分けルール3つ"
+    angle: "確定申告を焦らないために9月中に領収書を3分類する習慣を紹介"
+  - day: 2
+    date: "2026-09-02"
+    type: carousel
+    target_persona: ec_seller
+    topic: "海外仕入れの輸入消費税、仕入税額控除の正しい使い方"
+    angle: "税関で支払う輸入消費税を仕入税額控除に乗せる条件と証憑保存の手順を5枚で解説"
+  - day: 3
+    date: "2026-09-03"
+    type: reel
+    target_persona: influencer
+    topic: "複数プラットフォーム収益、年末調整前に収入を一覧化する"
+    angle: "YouTube・TikTok・Instagramなど収益源ごとに源泉徴収の有無を整理する方法を60秒で説明"
+  - day: 4
+    date: "2026-09-04"
+    type: reel
+    target_persona: smb_owner
+    topic: "9月中間決算の試算表、社長が読むべき3行はここだ"
+    angle: "売上総利益・営業利益・現金残高の3行を自分で確認できれば経営判断が変わる"
+  - day: 5
+    date: "2026-09-05"
+    type: carousel
+    target_persona: wealth_holder
+    topic: "暦年贈与の記録、年内に整えておく証拠書類リスト"
+    angle: "贈与契約書・振込記録・受贈者の申告控えを9月中に揃えると年末の対策が動きやすい"
+  - day: 6
+    date: "2026-09-06"
+    type: reel
+    target_persona: freelancer
+    topic: "税務署からの文書照会、届いた封筒の種類で対応が変わる"
+    angle: "お尋ね・調査通知・反面調査依頼の違いと初動の優先順位を1分で整理"
+  - day: 7
+    date: "2026-09-07"
+    type: reel
+    target_persona: ec_seller
+    topic: "ネットショップの9月棚卸し前チェック、評価方法の再確認"
+    angle: "移動平均法・最終仕入原価法の違いを確認し年度末に慌てない棚卸し準備の手順"
+  - day: 8
+    date: "2026-09-08"
+    type: carousel
+    target_persona: influencer
+    topic: "PR案件の契約書と請求書、消費税区分の確認ポイント"
+    angle: "国内企業案件と海外ブランド案件で消費税の課税・不課税が変わる判断基準を5枚で解説"
+  - day: 9
+    date: "2026-09-09"
+    type: reel
+    target_persona: smb_owner
+    topic: "9月に社長が確認すべき借入金返済計画の見直し時期"
+    angle: "下半期開始前に金融機関との条件変更交渉を始めるタイミングと必要書類を解説"
+  - day: 10
+    date: "2026-09-10"
+    type: reel
+    target_persona: wealth_holder
+    topic: "金融資産の相続評価、上場株式は何時点の価格を使うか"
+    angle: "相続開始月・前月・前々月の終値平均のうち最も低い価格を選べる仕組みを解説"
+  - day: 11
+    date: "2026-09-11"
+    type: carousel
+    target_persona: freelancer
+    topic: "フリーランスの按分計算、使用実態で割合を決める根拠の作り方"
+    angle: "自宅兼事務所の家賃・水道光熱費・通信費を税務調査に耐える根拠で按分するガイド"
+  - day: 12
+    date: "2026-09-12"
+    type: reel
+    target_persona: ec_seller
+    topic: "越境ECの返品対応、外貨建て売上修正の消費税仕訳"
+    angle: "海外顧客からの返品時に売上と消費税をどう取り消すか仕訳例付きで60秒解説"
+  - day: 13
+    date: "2026-09-13"
+    type: reel
+    target_persona: influencer
+    topic: "デジタルコンテンツ販売の消費税、BtoCは国内課税が基本"
+    angle: "電子書籍・オンライン講座・有料メンバーシップの消費税区分を収益源別に整理"
+  - day: 14
+    date: "2026-09-14"
+    type: carousel
+    target_persona: smb_owner
+    topic: "下半期スタート前に見直す役員報酬の適正水準の確認手順"
+    angle: "期中変更が原則禁止の役員報酬、定時改定のルールと次回改定までの準備を解説"
+  - day: 15
+    date: "2026-09-15"
+    type: reel
+    target_persona: wealth_holder
+    topic: "不動産の相続、固定資産税評価額と相続税評価額は別物"
+    angle: "土地は路線価方式または倍率方式で評価し固定資産税評価額と異なる理由を解説"
+  - day: 16
+    date: "2026-09-16"
+    type: reel
+    target_persona: freelancer
+    topic: "小規模企業共済の年払いへの切り替え、9月に動く理由"
+    angle: "月払いから年払いに変更する手続きと節税効果の試算を1分でわかりやすく説明"
+  - day: 17
+    date: "2026-09-17"
+    type: carousel
+    target_persona: ec_seller
+    topic: "Amazon・楽天の売上レポート、消費税申告用の集計方法"
+    angle: "プラットフォームの管理画面から課税売上・手数料・返品を正確に抽出する手順を5枚で解説"
+  - day: 18
+    date: "2026-09-18"
+    type: reel
+    target_persona: influencer
+    topic: "クリエイターが受け取る協賛金と広告料、源泉徴収の判定基準"
+    angle: "法人クライアントから受け取る報酬に源泉徴収が必要な条件と不要なケースを整理"
+  - day: 19
+    date: "2026-09-19"
+    type: reel
+    target_persona: smb_owner
+    topic: "法人の中間申告、消費税の納付時期と計算方法を整理する"
+    angle: "前期の消費税額をもとに中間申告の要否・仮決算選択の判断基準を社長向けに解説"
+  - day: 20
+    date: "2026-09-20"
+    type: carousel
+    target_persona: wealth_holder
+    topic: "生命保険の死亡保険金、相続税の非課税枠の計算式"
+    angle: "法定相続人の数×500万円の非課税枠を正確に計算し受取人指定の最適化を解説"
+  - day: 21
+    date: "2026-09-21"
+    type: reel
+    target_persona: freelancer
+    topic: "フリーランスの請求書、消費税額の端数処理ルールを確認"
+    angle: "インボイス制度下で1円単位の端数をどう処理するか取引先との合意事項も含め解説"
+  - day: 22
+    date: "2026-09-22"
+    type: reel
+    target_persona: ec_seller
+    topic: "ネットショップの景品費・販促費、消費税の仕入控除の条件"
+    angle: "無料プレゼント用に仕入れた商品の消費税は仕入控除できるか判断基準を60秒で解説"
+  - day: 23
+    date: "2026-09-23"
+    type: carousel
+    target_persona: influencer
+    topic: "インフルエンサーの経費、プライベート兼用品の按分ルール"
+    angle: "カメラ・スマホ・サブスク費用を業務使用割合で按分する根拠の作り方を5枚で解説"
+  - day: 24
+    date: "2026-09-24"
+    type: reel
+    target_persona: smb_owner
+    topic: "社長の連帯保証、事業承継前に外す手順と信用保証協会の活用"
+    angle: "経営者保証ガイドラインを使った保証解除の申請手順と金融機関交渉のポイントを解説"
+  - day: 25
+    date: "2026-09-25"
+    type: reel
+    target_persona: wealth_holder
+    topic: "海外不動産の相続評価、現地時価を円換算する方法"
+    angle: "相続開始日の外国為替相場で評価する原則と現地評価書の取得手順を解説"
+  - day: 26
+    date: "2026-09-26"
+    type: carousel
+    target_persona: freelancer
+    topic: "フリーランスの業務委託契約書、税務上の証拠として機能する書き方"
+    angle: "取引の実態を証明するために契約書に盛り込むべき項目を税務調査の観点から解説"
+  - day: 27
+    date: "2026-09-27"
+    type: reel
+    target_persona: ec_seller
+    topic: "EC事業者の仕入れ代金、前払金と仕入の計上タイミングの違い"
+    angle: "商品が届く前に支払った代金を前払金で処理し入荷時に仕入へ振り替える手順を解説"
+  - day: 28
+    date: "2026-09-28"
+    type: reel
+    target_persona: influencer
+    topic: "海外プラットフォームの収益、消費税のリバースチャージ方式とは"
+    angle: "Googleなど海外事業者へのサービス料に適用されるリバースチャージの仕組みを60秒で解説"
+  - day: 29
+    date: "2026-09-29"
+    type: carousel
+    target_persona: smb_owner
+    topic: "事業承継の株価引き下げ、退職金支給が有効な理由と限度額"
+    angle: "役員退職金を支給すると純資産が減り株価が下がる仕組みと功績倍率の目安を解説"
+  - day: 30
+    date: "2026-09-30"
+    type: reel
+    target_persona: wealth_holder
+    topic: "暗号資産の年間損益、9月時点での概算把握が年末対策を早める"
+    angle: "取引所の損益レポートを9月に確認し含み損の活用や損益通算の選択肢を早めに検討する"
