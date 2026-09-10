@@ -15,4 +15,10 @@ export const CUSTOM_READINGS = [
   // 台本側で『ひと部屋』とひらがな書きされた場合は VOICEVOX が標準で『ヒトヘヤ』と読む。
   { surface: "1部屋", pronunciation: "ヒトヘヤ", accent_type: 1, priority: 10 },
   { surface: "１部屋", pronunciation: "ヒトヘヤ", accent_type: 1, priority: 10 },
+  // ビジネス略語。通常は voiceText.js の BIZ_ABBREVIATIONS が先にカタカナ化するため
+  // ここまで到達しないが、表記ゆれ（BtoC の全角など）に対する保険として登録しておく。
+  { surface: "BtoB", pronunciation: "ビートゥービー", accent_type: 0, priority: 10 },
+  { surface: "BtoC", pronunciation: "ビートゥーシー", accent_type: 0, priority: 10 },
+  { surface: "CtoC", pronunciation: "シートゥーシー", accent_type: 0, priority: 10 },
+  { surface: "DtoC", pronunciation: "ディートゥーシー", accent_type: 0, priority: 10 },
 ];

@@ -81,7 +81,35 @@ function themeOf(p) {
   return [p.topic, p.angle].filter(Boolean).join("／");
 }
 
+// 「読み方」に関する差し戻しコメントを検知する。
+// 読みは台本テキストではなく voiceText.js / voicevoxDict.js で直す必要があるため、
+// LLM に投げても直らない（むしろ表記を壊す）。運用者が気づけるよう警告を出す。
+const READING_HINT_RE = /読み方|読みかた|よみかた|発音|読ませ|と読んで|イントネーション|アクセント/;
+
+function warnIfReadingRevision(revision, postId) {
+  if (!revision || !READING_HINT_RE.test(revision)) return null;
+  const msg =
+    `[info][title]🔊 読み方の修正指示を検知しました（${postId}）[/title]` +
+    `指示内容: ${revision.trim()}\n\n` +
+    `読み方は台本テキストでは直せません。音声合成側の辞書で対応が必要です:\n` +
+    `　reel-bot/src/voiceText.js（表記はそのまま・音声だけカタカナ化）\n` +
+    `　reel-bot/src/voicevoxDict.js（VOICEVOX ユーザー辞書）\n\n` +
+    `※ 台本の表記は変更せずに再生成します。辞書へ追記後、` +
+    `reuse_script=true で音声・動画のみ再生成してください。[/info]`;
+  console.log(`  ⚠ 読み方の修正指示を検知: ${revision.trim()}`);
+  console.log(`     → 台本では直りません。voiceText.js / voicevoxDict.js に追記が必要です。`);
+  return msg;
+}
+
 async function generateOne(p, revision = "", { reuseScript = false } = {}) {
+  // 読み方の指示なら、台本ではなく辞書対応が必要なことを先に通知する
+  const readingWarning = warnIfReadingRevision(revision, p.date);
+  if (readingWarning) {
+    try {
+      await sendMessage(readingWarning);
+    } catch { /* 通知失敗は生成を止めない */ }
+  }
+
   // 状態: generating
   await upsertRow(p.date, {
     publish_date: p.date,

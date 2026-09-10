@@ -21,6 +21,31 @@ export function toVoiceText(display) {
   s = s.replace(/NO(?![A-Za-z])/g, "ノー").replace(/(?<![A-Za-z])no(?![A-Za-z])/g, "ノー");
   s = s.replace(/OK(?![A-Za-z])/g, "オーケー").replace(/(?<![A-Za-z])ok(?![A-Za-z])/g, "オーケー");
 
+  // --- ビジネス略語（BtoC / BtoB / D2C 等）---
+  // VOICEVOX は "BtoC" を『ベトシ』等と誤読する（英字を1語として形態素解析するため）。
+  // 表示（字幕・フック）は原文 "BtoC" のまま美しく残り、音声だけカタカナ読みになる。
+  // ※ 読み方の修正依頼はここに1行足すこと。台本テキストを書き換えてはいけない。
+  const BIZ_ABBREVIATIONS = {
+    BtoBtoC: "ビートゥービートゥーシー",
+    BtoB: "ビートゥービー",
+    BtoC: "ビートゥーシー",
+    BtoG: "ビートゥージー",
+    BtoE: "ビートゥーイー",
+    CtoC: "シートゥーシー",
+    DtoC: "ディートゥーシー",
+    B2B: "ビートゥービー",
+    B2C: "ビートゥーシー",
+    C2C: "シートゥーシー",
+    D2C: "ディートゥーシー",
+  };
+  // 長い表記から先に置換（BtoBtoC が BtoB + toC に分解されるのを防ぐ）
+  for (const surface of Object.keys(BIZ_ABBREVIATIONS).sort((a, b) => b.length - a.length)) {
+    s = s.replace(
+      new RegExp(`(?<![A-Za-z0-9])${surface}(?![A-Za-z0-9])`, "gi"),
+      BIZ_ABBREVIATIONS[surface]
+    );
+  }
+
   // --- 範囲を表す 波ダッシュ / 全角チルダ → 「から」 ---
   // 〜 (U+301C) と ～ (U+FF5E) はどちらも VOICEVOX の辞書に読みがなく、無音でスキップされる。
   // 「8〜15%」→「8から15%」と読むよう置換する。
