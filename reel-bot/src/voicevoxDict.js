@@ -17,6 +17,10 @@ export const CUSTOM_READINGS = [
   { surface: "１部屋", pronunciation: "ヒトヘヤ", accent_type: 1, priority: 10 },
   // ビジネス略語。通常は voiceText.js の BIZ_ABBREVIATIONS が先にカタカナ化するため
   // ここまで到達しないが、表記ゆれ（BtoC の全角など）に対する保険として登録しておく。
+  // 「掛金」は『カケガネ』（留め金の意）と誤読されうる。共済・保険の文脈は『カケキン』。
+  { surface: "掛金", pronunciation: "カケキン", accent_type: 0, priority: 10 },
+  // 「前納」は『マエノウ』ではなく『ゼンノウ』。
+  { surface: "前納", pronunciation: "ゼンノウ", accent_type: 0, priority: 10 },
   { surface: "BtoB", pronunciation: "ビートゥービー", accent_type: 0, priority: 10 },
   { surface: "BtoC", pronunciation: "ビートゥーシー", accent_type: 0, priority: 10 },
   { surface: "CtoC", pronunciation: "シートゥーシー", accent_type: 0, priority: 10 },
