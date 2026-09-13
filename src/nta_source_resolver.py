@@ -26,12 +26,22 @@ _DEFAULT_SOURCES_DIR = Path(
     )
 )
 
+# nta-qa は nta-sources の兄弟ディレクトリ。個別に上書きもできる。
+_DEFAULT_QA_DIR = Path(
+    os.environ.get("NTA_QA_DIR", str(_DEFAULT_SOURCES_DIR.parent / "nta-qa"))
+)
+
+# ペルソナごとに参照する税目を絞る。
+# ※ 絞りすぎると「正解の資料が採点前に捨てられる」事故が起きる（過去2件発生）。
+#    - wealth_holder に shotoku が無く、外国税額控除(No.1240)が引けなかった
+#    - influencer に shohi が無く、越境デジタル役務の資料が全件除外された
+#    消費税(shohi)はどのペルソナにも関係しうるため、全ペルソナで参照可能にしている。
 _PERSONA_TO_CATEGORIES: dict[str, list[str]] = {
-    "ec_seller": ["shohi"],
+    "ec_seller": ["shohi", "shotoku"],
     "freelancer": ["shotoku", "shohi"],
-    "influencer": ["shotoku", "gensen"],
+    "influencer": ["shotoku", "gensen", "shohi"],
     "smb_owner": ["shotoku", "shohi", "hojin"],
-    "wealth_holder": ["shotoku", "sozoku", "zoyo", "hyoka"],
+    "wealth_holder": ["shotoku", "sozoku", "zoyo", "hyoka", "shohi"],
 }
 
 _STOP_WORDS = frozenset(
@@ -75,19 +85,53 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     return shared / (len(a) + len(b) - shared or 1)
 
 
-def _load_index(sources_dir: Path) -> list[dict] | None:
-    index_path = sources_dir / "index.json"
-    if not index_path.exists():
-        return None
-    data = json.loads(index_path.read_text(encoding="utf-8"))
-    return data.get("entries") if isinstance(data, dict) else None
+def _load_index(sources_dir: Path, qa_dir: Path | None = None) -> list[dict] | None:
+    """nta-sources と nta-qa の index を読み、由来を _base_dir に持たせて統合する。"""
+    merged: list[dict] = []
+    for base_dir in [sources_dir, qa_dir or _DEFAULT_QA_DIR]:
+        index_path = base_dir / "index.json"
+        if not index_path.exists():
+            continue
+        try:
+            data = json.loads(index_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue  # 壊れた index は無視して他方を使う
+        entries = data.get("entries") if isinstance(data, dict) else None
+        for e in entries or []:
+            if e:
+                merged.append({**e, "_base_dir": str(base_dir)})
+    return merged or None
 
 
-def _load_source_file(sources_dir: Path, file_path: str) -> dict | None:
-    full_path = sources_dir / file_path
+def _load_source_file(base_dir: Path | str, file_path: str) -> dict | None:
+    full_path = Path(base_dir) / file_path
     if not full_path.exists():
         return None
-    return json.loads(full_path.read_text(encoding="utf-8"))
+    try:
+        return json.loads(full_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _build_excerpt(source: dict) -> str:
+    """タックスアンサー/質疑応答は sections、Q&A・パンフレットは body に本文を持つ。"""
+    sections = source.get("sections", {}) or {}
+    parts: list[str] = []
+    overview = sections.get("概要", "")
+    calc_info = sections.get("計算方法・計算式", "")
+    target_info = sections.get("対象者または対象物", "")
+    notes = sections.get("注意事項", "")
+    if overview:
+        parts.append(overview[:1500])
+    if calc_info:
+        parts.append(calc_info[:800])
+    if target_info and len(target_info) < 500:
+        parts.append(target_info)
+    if notes and len(notes) < 500:
+        parts.append(notes)
+    if not parts and source.get("body"):
+        parts.append(str(source["body"])[:1800])
+    return "\n".join(parts)
 
 
 def resolve_nta_sources(
@@ -108,11 +152,12 @@ def resolve_nta_sources(
     query_tokens = _tokenize(query_text)
     categories = _PERSONA_TO_CATEGORIES.get(post.get("target_persona", ""), [])
 
+    accepted_types = {"taxanswer", "qa"}
     pool = [
         e
         for e in entries
         if e
-        and e.get("type") == "taxanswer"
+        and e.get("type") in accepted_types
         and not e.get("deleted")
         and e.get("title")
         and e.get("url")
@@ -131,33 +176,18 @@ def resolve_nta_sources(
     for candidate in scored:
         if candidate["score"] < 0.15:
             continue
-        source = _load_source_file(src_dir, candidate["file_path"])
+        source = _load_source_file(candidate.get("_base_dir", src_dir), candidate["file_path"])
         if not source:
             continue
-
-        sections = source.get("sections", {})
-        overview = sections.get("概要", "")
-        calc_info = sections.get("計算方法・計算式", "")
-        target_info = sections.get("対象者または対象物", "")
-        notes = sections.get("注意事項", "")
-
-        excerpt_parts: list[str] = []
-        if overview:
-            excerpt_parts.append(overview[:1500])
-        if calc_info:
-            excerpt_parts.append(calc_info[:800])
-        if target_info and len(target_info) < 500:
-            excerpt_parts.append(target_info)
-        if notes and len(notes) < 500:
-            excerpt_parts.append(notes)
 
         refs.append(
             {
                 "no": source.get("id", ""),
                 "title": source.get("title_full") or source.get("title", ""),
                 "url": source.get("url", ""),
-                "law_version": source.get("law_version", ""),
-                "excerpt": "\n".join(excerpt_parts),
+                # タックスアンサーは law_version、Q&A・パンフレットは source_label
+                "law_version": source.get("law_version") or source.get("source_label", ""),
+                "excerpt": _build_excerpt(source),
                 "score": candidate["score"],
             }
         )

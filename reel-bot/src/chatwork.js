@@ -29,12 +29,51 @@ export async function sendMessage(text, { roomId = env.CHATWORK_ROOM_ID } = {}) 
 }
 
 /** 生成完了（確認依頼）メッセージ。approveUrl は Phase 2 の承認ページ。 */
-export function buildReviewMessage({ post, previewUrl, approveUrl, titlePrefix }) {
+export function buildReviewMessage({
+  post,
+  previewUrl,
+  approveUrl,
+  titlePrefix,
+  ntaRefs = [],
+  verification = null,
+}) {
   const lines = [];
   lines.push(`[info][title]${titlePrefix || "🎬 リール生成完了（確認おねがいします）"}[/title]`);
   lines.push(`種別: ${post.type === "carousel" ? "カルーセル（フィード）" : "リール"}`);
   lines.push(`公開予定: ${post.publish_date}`);
   if (post.theme) lines.push(`テーマ: ${post.theme}`);
+
+  // --- 税務チェック情報（レビュアーが原典と突き合わせられるように）---
+  lines.push("");
+  if (ntaRefs.length) {
+    lines.push("📚 参照した国税庁資料:");
+    for (const r of ntaRefs) {
+      lines.push(`　・${r.title}`);
+      if (r.url) lines.push(`　　${r.url}`);
+    }
+  } else {
+    lines.push("⚠️ 国税庁ソース未ヒット");
+    lines.push("　根拠資料なしで生成されています。事実確認を念入りにお願いします。");
+  }
+
+  // --- 自動検証の結果 ---
+  const issues = verification?.issues || [];
+  if (issues.length) {
+    const fixed = issues.filter((i) => i && i.fixed);
+    const noted = issues.filter((i) => i && !i.fixed);
+    lines.push("");
+    lines.push(`🔍 自動検証: ${issues.length}件の指摘`);
+    for (const i of fixed) {
+      lines.push(`　[修正済] ${String(i.problem || "").slice(0, 110)}`);
+    }
+    for (const i of noted) {
+      lines.push(`　[要確認] ${String(i.problem || "").slice(0, 110)}`);
+    }
+    if (noted.length) {
+      lines.push("　※ [要確認] は自動修正していません。内容をご確認ください。");
+    }
+  }
+
   lines.push("");
   // 確認・プレビュー・操作はすべて承認ページで行う（1リンクに集約）
   if (approveUrl) {

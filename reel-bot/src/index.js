@@ -28,6 +28,7 @@ import {
   generateReelCaption,
   saveCaption,
 } from "./scriptGenerator.js";
+import { verifyScript, formatVerificationLog } from "./scriptVerifier.js";
 import { checkEngine, findSpeakerId, synthesizeFull } from "./voicevoxClient.js";
 import { toVoiceText } from "./voiceText.js";
 import { uploadFile, downloadText } from "./gcs.js";
@@ -73,6 +74,8 @@ export async function runPipeline(args = {}) {
 
   // ===== ① 台本 =====
   let script;
+  // 台本検証の結果（レビュー通知に載せるため呼び出し元へ返す）
+  let verificationResult = null;
   if (args.reuseScript && !args.revision) {
     // 既存 script.json を保持したまま、音声・字幕・動画のみ再生成するモード。
     // ローカルに無ければ GCS から取得（GitHub Actions のクリーン環境用）
@@ -111,6 +114,16 @@ export async function runPipeline(args = {}) {
       previousScript,
       ntaRefText: args.ntaRefText || "",
     });
+
+    // ===== ①-2 税務ファクトチェック（数値・事実の誤りのみ最小修正）=====
+    // カルーセルの Stage 2 Editor に相当する検証段階。
+    // 表現・構成には手を入れず、事実面の誤りだけを直す。
+    console.log("=== ①-2 台本の税務検証 ===");
+    const verification = await verifyScript(script, args.postInfo || null, args.ntaRefText || "");
+    console.log(formatVerificationLog(verification));
+    script = verification.script;
+    verificationResult = verification;
+
     saveScript(script, slug);
   }
   console.log(`  hook: ${script.hook}`);
@@ -133,7 +146,7 @@ export async function runPipeline(args = {}) {
 
   if (args.dryRun) {
     console.log("\n--dry-run: 音声以降はスキップ");
-    return { slug, scriptPath, script };
+    return { slug, scriptPath, script, verification: verificationResult };
   }
 
   // ===== ② 音声 =====
@@ -253,6 +266,7 @@ export async function runPipeline(args = {}) {
     driveFolderId,
     postResult,
     script,
+    verification: verificationResult,
   };
 }
 

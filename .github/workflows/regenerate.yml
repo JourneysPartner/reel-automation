@@ -22,7 +22,9 @@ jobs:
         with:
           repository: JourneysPartner/hp-vlog
           path: _hp-vlog
-          sparse-checkout: data/nta-sources
+          sparse-checkout: |
+            data/nta-sources
+            data/nta-qa
           sparse-checkout-cone-mode: true
 
       - uses: actions/setup-node@v4
@@ -69,4 +71,5 @@ jobs:
           APPROVAL_SECRET: ${{ secrets.APPROVAL_SECRET }}
           VOICEVOX_HOST: http://localhost:50021
           NTA_SOURCES_DIR: ${{ github.workspace }}/_hp-vlog/data/nta-sources
+          NTA_QA_DIR: ${{ github.workspace }}/_hp-vlog/data/nta-qa
         run: node src/scheduler.js --id "$PAYLOAD_ID" --revision "$PAYLOAD_COMMENT"

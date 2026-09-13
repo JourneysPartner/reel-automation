@@ -119,7 +119,17 @@ async function generateOne(p, revision = "", { reuseScript = false } = {}) {
     ...(revision ? { revision_comment: revision } : {}),
   });
 
+  // 参照した国税庁資料と自動検証の結果は、レビュー通知に載せて人間の確認を助ける
+  const { refs: ntaRefs, refText: ntaRefText } = resolveNtaSources(p);
+  if (ntaRefs.length) {
+    console.log(`  NTA税務参考資料: ${ntaRefs.length}件取得`);
+    for (const r of ntaRefs) console.log(`    - ${r.title}`);
+  } else {
+    console.log("  ⚠ NTA税務参考資料: 0件（根拠資料なしで生成します）");
+  }
+
   let previewUrl;
+  let verification = null;
   if (p.type === "carousel") {
     // カルーセル: Python で生成 → スライドとキャプションを GCS へ
     // 差し戻し時は revision を渡して指定箇所のみ最小修正させる（全ページの再生成を防ぐ）
@@ -140,9 +150,8 @@ async function generateOne(p, revision = "", { reuseScript = false } = {}) {
   } else {
     // リール: schedule の topic/angle を台本ソースに（slug=公開日）
     const sourceText = `テーマ: ${p.topic || ""}\n切り口: ${p.angle || ""}\n対象: ${p.target_persona || ""}`;
-    const { refText: ntaRefText } = resolveNtaSources(p);
-    if (ntaRefText) console.log(`  NTA税務参考資料: ${ntaRefText.split("\n").filter(l => l.startsWith("■")).length}件取得`);
-    await runPipeline({ text: sourceText, slug: p.date, revision, postInfo: p, reuseScript, ntaRefText });
+    const res = await runPipeline({ text: sourceText, slug: p.date, revision, postInfo: p, reuseScript, ntaRefText });
+    verification = res?.verification || null;
     // 確認用は GCS 直URL（Driveの再生処理待ちを回避し即再生）。7日有効。
     previewUrl = await signObjectUrl(`reels/${p.date}/reel.mp4`, { expiryMs: PREVIEW_EXPIRY_MS });
   }
@@ -158,6 +167,8 @@ async function generateOne(p, revision = "", { reuseScript = false } = {}) {
       post: { publish_date: p.date, theme: themeOf(p), type: p.type },
       previewUrl,
       approveUrl,
+      ntaRefs,
+      verification,
       titlePrefix: revision ? "🔁 修正版を再生成しました（確認おねがいします）" : undefined,
     })
   );

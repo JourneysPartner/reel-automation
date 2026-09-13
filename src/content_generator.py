@@ -226,6 +226,15 @@ CREATOR_USER_TEMPLATE = """以下の条件で、Instagramカルーセル投稿�
 
 {nta_ref_section}
 
+【参考資料と依頼テーマが矛盾する場合の扱い（最重要）】
+依頼のテーマ・切り口が、ある効果や有利さを前提として書かれていることがある。
+しかしその前提自体が税法上誤っている場合、前提に従ってはいけない。
+- 上記【税務参考資料】の記載が依頼テーマの前提と矛盾する場合は、必ず参考資料を優先する
+- 前提が成り立たないとわかったら、その前提に沿った構成にせず、
+  「実際にはこうである」という正しい内容に切り替える
+- 「テーマがそう書いてあるから」という理由で、誤った因果関係を説明してはいけない
+- 一般論（どの条件でも成り立つ話）を、特定条件の固有メリットとして語らない
+
 【出力フォーマット】
 必ず次の構造のJSONのみを返してください（前後に説明文・コードフェンスは付けない）。
 
@@ -268,6 +277,24 @@ REVISION_USER_TEMPLATE = """以下は現在のカルーセル投稿の原稿（J
 
 
 EDITOR_USER_TEMPLATE = """以下のドラフト原稿をチェックし、必要なら修正してください。
+
+【この投稿のテーマ】
+{topic}
+
+【切り口】
+{angle}
+
+{nta_ref_section}
+
+【税務ファクトチェック（最優先。表現調整より先に行う）】
+上記【税務参考資料】と照合し、次を確認して**誤りがあれば必ず直す**:
+- 税率・金額・要件・期限などの数値が資料と食い違っていないか
+- 「AすればBになる」という因果関係が税法上成り立つか
+- テーマや切り口が前提としている「有利さ・効果」が、実際には存在しない前提でないか
+  （資料と矛盾する場合は資料を優先し、正しい内容に書き換える）
+- 一般論（どの条件でも成り立つ話）を特定条件の固有メリットとして語っていないか
+※ 参考資料が無い場合は、具体的な数値や断定的な因果関係の記述を控えめな表現に直す。
+※ 事実面の修正を優先し、事実が正しい箇所の言い回しは不必要に変えないこと。
 
 【コンプライアンスNG表現リスト】
 {ng_list}
@@ -317,7 +344,19 @@ EDITOR_USER_TEMPLATE = """以下のドラフト原稿をチェックし、必要
 """
 
 
-def build_creator_request(post: dict, persona: dict, settings: dict) -> tuple[list, list]:
+def resolve_nta_section(post: dict) -> tuple[str, list]:
+    """NTA 参考資料を1回だけ解決し、Creator と Editor の両方で使い回す。"""
+    nta = resolve_nta_sources(post)
+    section = nta["ref_text"] if nta["ref_text"] else "（税務参考資料: なし）"
+    return section, nta["refs"]
+
+
+def build_creator_request(
+    post: dict,
+    persona: dict,
+    settings: dict,
+    nta_ref_section: str | None = None,
+) -> tuple[list, list]:
     system_blocks = [
         {
             "type": "text",
@@ -330,10 +369,11 @@ def build_creator_request(post: dict, persona: dict, settings: dict) -> tuple[li
     cta_keyword_options_str = _format_cta_keyword_options(cta_keyword_options)
 
     # NTA ソースデータベースからトピック関連の公式情報を取得
-    nta = resolve_nta_sources(post)
-    nta_ref_section = nta["ref_text"] if nta["ref_text"] else "（税務参考資料: なし）"
-    if nta["refs"]:
-        print(f"  NTA税務参考資料: {len(nta['refs'])}件取得")
+    # 呼び出し側が解決済みなら再取得しない（Editor と同じ資料を使うため）
+    if nta_ref_section is None:
+        nta_ref_section, _refs = resolve_nta_section(post)
+        if _refs:
+            print(f"  NTA税務参考資料: {len(_refs)}件取得")
 
     user_text = CREATOR_USER_TEMPLATE.format(
         post_date=post["date"],
@@ -404,7 +444,12 @@ def _load_previous_output(post_date: str) -> dict | None:
     return {"caption": caption, "slides": slides, "hashtags": hashtags}
 
 
-def build_editor_request(draft: dict, settings: dict) -> tuple[list, list]:
+def build_editor_request(
+    draft: dict,
+    settings: dict,
+    post: dict | None = None,
+    nta_ref_section: str = "（税務参考資料: なし）",
+) -> tuple[list, list]:
     system_blocks = [
         {
             "type": "text",
@@ -413,7 +458,11 @@ def build_editor_request(draft: dict, settings: dict) -> tuple[list, list]:
         }
     ]
     ng_list = "、".join(settings.get("ng_expressions", []))
+    post = post or {}
     user_text = EDITOR_USER_TEMPLATE.format(
+        topic=post.get("topic", "（指定なし）"),
+        angle=post.get("angle", "（指定なし）"),
+        nta_ref_section=nta_ref_section,
         ng_list=ng_list,
         cap_min=settings["caption_min_chars"],
         cap_max=settings["caption_max_chars"],
@@ -652,8 +701,16 @@ def generate(
             result["output_dir"] = str(out_dir)
         return result
 
+    # NTA 参考資料は1回だけ解決し、Creator と Editor で同じものを使う
+    # （Editor が照合先を持たないまま税務チェックしていた問題への対応）
+    nta_ref_section, nta_refs = resolve_nta_section(post)
+    if nta_refs:
+        print(f"  NTA税務参考資料: {len(nta_refs)}件取得")
+    else:
+        print("  ⚠ NTA税務参考資料: 0件（事実確認を念入りに行ってください）")
+
     # ---------- Stage 1: Creator ----------
-    sys_c, msg_c = build_creator_request(post, persona, settings)
+    sys_c, msg_c = build_creator_request(post, persona, settings, nta_ref_section)
     creator_text, creator_usage = _call_claude(
         client, model, sys_c, msg_c,
         temperature=float(settings.get("creator_temperature", 0.8)),
@@ -661,8 +718,8 @@ def generate(
     )
     draft = _extract_json(creator_text)
 
-    # ---------- Stage 2: Editor ----------
-    sys_e, msg_e = build_editor_request(draft, settings)
+    # ---------- Stage 2: Editor（税務ファクトチェック込み）----------
+    sys_e, msg_e = build_editor_request(draft, settings, post, nta_ref_section)
     editor_text, editor_usage = _call_claude(
         client, model, sys_e, msg_e,
         temperature=float(settings.get("editor_temperature", 0.3)),

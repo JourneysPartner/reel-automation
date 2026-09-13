@@ -153,22 +153,114 @@ async function planTopics(monthStr, slots, personas, pastTopics) {
     `- 指定 persona の悩みに刺さるテーマにする\n` +
     `- 過去テーマと「明らかな重複」を避ける。大まかに重複する場合も切り口・言い方を必ず変える\n` +
     `- topic は15〜25字、angle は30〜50字で具体的に\n` +
-    `- **税務原則との整合性を必ず自己チェック**（system prompt の絶対ルール参照）。因果関係・時期・金額に誤りがある topic は不採用にして別テーマにする\n\n` +
+    `- **税務原則との整合性を必ず自己チェック**（system prompt の絶対ルール参照）。因果関係・時期・金額に誤りがある topic は不採用にして別テーマにする\n` +
+    `- **premise（その切り口が税法上成り立つ根拠）を必ず書く**。40〜80字。\n` +
+    `  angle が「○○すると得」「○○すれば増える」のような効果を前提にする場合、\n` +
+    `  その効果が実際に税法上生じる理由を premise に具体的に書くこと。\n` +
+    `  根拠を書けない切り口は、前提が成り立っていない可能性が高いので採用しない。\n\n` +
     `【出力】次のJSON配列のみ（スロット順、no を必ず付ける）:\n` +
-    `[{"no":1,"topic":"...","angle":"..."}, ...]`;
+    `[{"no":1,"topic":"...","angle":"...","premise":"..."}, ...]`;
 
   const resp = await client.messages.create({
     model: MODEL,
-    max_tokens: 4000,
+    // 30スロット × (topic+angle+premise) で出力が長い。
+    // 足りないと JSON が途中で切れて抽出に失敗するため余裕を持たせる。
+    max_tokens: 12000,
     temperature: 0.7,
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: user }],
   });
+  if (resp.stop_reason === "max_tokens") {
+    throw new Error(
+      `立案の出力が max_tokens で打ち切られました（スロット数を減らすか max_tokens を上げてください）`
+    );
+  }
   const text = resp.content.filter((b) => b.type === "text").map((b) => b.text).join("");
   const s = text.indexOf("[");
   const e = text.lastIndexOf("]");
   if (s === -1 || e === -1) throw new Error(`JSON抽出失敗: ${text.slice(0, 200)}`);
   return JSON.parse(text.slice(s, e + 1));
+}
+
+const VERIFY_SYSTEM = `あなたは日本の税法に精通した税務監査担当です。
+SNS投稿の企画案（topic / angle / premise）を、税務的に成り立つかどうかだけ検証します。
+
+【検証すること】
+各案の angle と premise が前提としている「効果・有利さ・因果関係」が、
+日本の税法上、実際に成り立つかを判定する。
+
+【特に多い誤り】
+- 一般論を特定条件の固有メリットとして語る
+  例:「○月決算にすれば消費税の免税期間が延びる」
+    → 免税期間は設立日と事業年度末の間隔で決まり、決算月固有の効果ではない
+  例:「年払いに変えれば控除額が増える」
+    → 控除額はその年に支払った額で決まり、支払方法では変わらない
+- 支払方法・名称・時期を変えるだけで税額が変わるかのような記述
+- 上限のある控除で「増やせる」と述べる
+- 制度名の取り違え（予定納税と中間申告、不課税と免税 など）
+
+【判定基準】
+- ok    : 前提が税法上成り立つ
+- ng    : 前提が誤り。そのままでは誤情報になる
+- unsure: 条件次第で成否が変わる。断定できない
+
+【出力フォーマット】
+JSON配列のみを出力すること。説明文は不要。
+[{"no":1,"verdict":"ok","reason":"","fixed_topic":"","fixed_angle":""}, ...]
+- verdict が ng の場合のみ、fixed_topic と fixed_angle に
+  「事実に即した代替案」を入れる（topic 15〜25字 / angle 30〜50字）。
+  元のテーマの狙い（対象ペルソナ・時期・関心事）は保ちつつ、誤った前提だけを外すこと。
+- verdict が ok / unsure の場合、fixed_topic と fixed_angle は空文字にする
+- reason は ng / unsure の場合のみ、60字以内で簡潔に`;
+
+/** 立案された topic/angle の前提が税法上成り立つかを検証し、誤りを差し替える。 */
+async function verifyTopics(entries, client) {
+  const listText = entries
+    .map(
+      (e) =>
+        `${e.no}. [${e.type}/${e.target_persona}]\n` +
+        `   topic: ${e.topic}\n   angle: ${e.angle}\n   premise: ${e.premise || "（なし）"}`
+    )
+    .join("\n");
+
+  const resp = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4000,
+    temperature: 0,
+    system: [{ type: "text", text: VERIFY_SYSTEM, cache_control: { type: "ephemeral" } }],
+    messages: [{ role: "user", content: `次の企画案を検証してください。\n\n${listText}` }],
+  });
+  const text = resp.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+  const s = text.indexOf("[");
+  const e2 = text.lastIndexOf("]");
+  if (s === -1 || e2 === -1) throw new Error(`検証JSONの抽出に失敗: ${text.slice(0, 200)}`);
+  return JSON.parse(text.slice(s, e2 + 1));
+}
+
+/** 検証結果を企画案へ反映する。ng は差し替え、unsure は警告のみ。 */
+function applyVerdicts(entries, verdicts) {
+  const byNo = new Map(verdicts.map((v) => [v.no, v]));
+  const replaced = [];
+  const flagged = [];
+  const out = entries.map((e) => {
+    const v = byNo.get(e.no);
+    if (!v) return e;
+    if (v.verdict === "ng" && v.fixed_topic && v.fixed_angle) {
+      replaced.push({ date: e.date, before: e.topic, after: v.fixed_topic, reason: v.reason });
+      return { ...e, topic: v.fixed_topic, angle: v.fixed_angle, _verdict: "ng_fixed" };
+    }
+    if (v.verdict === "ng") {
+      // 代替案が無い ng は差し替えられないので警告に回す
+      flagged.push({ date: e.date, topic: e.topic, reason: v.reason || "前提に誤りの疑い" });
+      return { ...e, _verdict: "ng_unfixed" };
+    }
+    if (v.verdict === "unsure") {
+      flagged.push({ date: e.date, topic: e.topic, reason: v.reason || "条件次第" });
+      return { ...e, _verdict: "unsure" };
+    }
+    return e;
+  });
+  return { entries: out, replaced, flagged };
 }
 
 function appendToSchedule(entries) {
@@ -181,6 +273,9 @@ function appendToSchedule(entries) {
       `    target_persona: ${p.target_persona}\n` +
       `    topic: ${JSON.stringify(p.topic)}\n` +
       `    angle: ${JSON.stringify(p.angle)}\n`;
+    // premise は「その切り口が税法上成り立つ根拠」。生成では使わないが、
+    // 後から前提の妥当性を検証・追跡できるよう残しておく。
+    if (p.premise) lines += `    premise: ${JSON.stringify(p.premise)}\n`;
   }
   fs.appendFileSync(SCHEDULE_PATH, lines, "utf-8");
 }
@@ -217,14 +312,38 @@ async function main() {
 
   const topics = await planTopics(monthStr, slots, personas, pastTopics);
   const byNo = new Map(topics.map((t) => [t.no, t]));
-  const entries = slots.map((s) => ({
+  let entries = slots.map((s) => ({
     ...s,
     topic: byNo.get(s.no)?.topic || `(${s.type} ${s.date})`,
     angle: byNo.get(s.no)?.angle || "",
+    premise: byNo.get(s.no)?.premise || "",
   }));
 
   console.log("\n=== 立案結果 ===");
   for (const e of entries) console.log(`  ${e.date} [${e.type}] ${e.target_persona}: ${e.topic}`);
+
+  // ---------- 前提の税務検証（誤った前提が schedule.yaml に入るのを防ぐ）----------
+  let replaced = [];
+  let flagged = [];
+  console.log("\n=== 前提の税務検証 ===");
+  try {
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    const verdicts = await verifyTopics(entries, client);
+    ({ entries, replaced, flagged } = applyVerdicts(entries, verdicts));
+    if (!replaced.length && !flagged.length) {
+      console.log("  ✓ 全件、前提に問題なし");
+    }
+    for (const r of replaced) {
+      console.log(`  [差替] ${r.date}: ${r.reason || ""}`);
+      console.log(`         前: ${r.before}`);
+      console.log(`         後: ${r.after}`);
+    }
+    for (const f of flagged) {
+      console.log(`  [要確認] ${f.date}: ${f.topic} — ${f.reason}`);
+    }
+  } catch (e) {
+    console.log(`  (note) 前提検証に失敗（立案は継続）: ${e.message}`);
+  }
 
   if (args.dryRun) {
     console.log("\n--dry-run: schedule.yaml への追記・通知はしません");
@@ -238,6 +357,21 @@ async function main() {
     const lines = [
       `[info][title]🗓 ${title}[/title]`,
       `${entries.length}本を立案しました。`,
+      ...(replaced.length
+        ? [
+            "",
+            `🔍 前提検証で ${replaced.length}件を差し替えました:`,
+            ...replaced.map((r) => `　・${r.date} ${r.reason || ""}\n　　→ ${r.after}`),
+          ]
+        : []),
+      ...(flagged.length
+        ? [
+            "",
+            `⚠️ 要確認 ${flagged.length}件（前提が条件次第です）:`,
+            ...flagged.map((f) => `　・${f.date} ${f.topic} — ${f.reason}`),
+          ]
+        : []),
+      "",
       "各投稿は公開3日前に自動生成され、確認依頼が届きます。",
       "内容を変えたい場合は config/schedule.yaml を編集してください。",
       "[/info]",
@@ -248,7 +382,11 @@ async function main() {
   }
 }
 
-main().catch((e) => {
-  console.error(`[ERROR] ${e.message}`);
-  process.exit(1);
-});
+// 直接実行されたときだけ走らせる。
+// （ガードが無いと import しただけで立案が始まり、schedule.yaml が書き換わる恐れがある）
+if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("planMonth.js")) {
+  main().catch((e) => {
+    console.error(`[ERROR] ${e.message}`);
+    process.exit(1);
+  });
+}
